@@ -23,6 +23,7 @@ const fs = require('fs-extra');
 const validUrl = require('valid-url');
 const clone = require('clone');
 const request = require('request-promise-native');
+const touch = require('touch');
 
 const lastModified = {};
 
@@ -31,6 +32,7 @@ async function main() {
 
   let cont = true;
   do {
+    await touch('/tmp/liveness');
     try {
       let resourceUris = [];
       let files = await fs.readdir('./resource-uris');

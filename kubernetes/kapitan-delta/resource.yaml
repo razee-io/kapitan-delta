@@ -127,9 +127,9 @@ spec:
         livenessProbe:
           exec:
             command:
-            - sh/liveness.sh
-          initialDelaySeconds: 30
-          periodSeconds: 300
+            - sh/liveness.sh 10
+          initialDelaySeconds: 60
+          periodSeconds: 600
           timeoutSeconds: 30
           failureThreshold: 1
         volumeMounts:
