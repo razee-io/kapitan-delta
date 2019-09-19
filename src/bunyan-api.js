@@ -19,7 +19,7 @@ module.exports = {
   'createLogger': function (name) {
     try {
       return bunyan.createLogger({
-        name: name || 'kapitan-delta',
+        name: name || 'razeedeploy-delta',
         streams: [{
           level: (process.env.LOG_LEVEL || 'info'),
           stream: process.stdout // log LOG_LEVEL and above to stdout
@@ -29,7 +29,7 @@ module.exports = {
     } catch (err) {
       // unknown log level given, default to info
       return bunyan.createLogger({
-        name: name || 'kapitan-delta',
+        name: name || 'razeedeploy-delta',
         streams: [{
           level: ('info'),
           stream: process.stdout // log level and above to stdout
