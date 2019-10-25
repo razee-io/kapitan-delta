@@ -91,6 +91,8 @@ metadata:
     version: {{TRAVIS_COMMIT}}
     razee.io/git-repo: "{{{GIT_REMOTE}}}"
     razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
+  labels:
+    razee/watch-resource: "lite"
 spec:
   replicas: 1
   revisionHistoryLimit: 0
@@ -103,6 +105,7 @@ spec:
     metadata:
       labels:
         app: razeedeploy-delta
+        razee/watch-resource: "lite"
       name: razeedeploy-delta
     spec:
       serviceAccountName: razeedeploy-sa
