@@ -24,7 +24,7 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: kapitan-sa
+  name: razeedeploy-sa
   namespace: razee
   annotations:
     razee.io/git-repo: "{{{GIT_REMOTE}}}"
@@ -33,7 +33,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: kapitan-admin-cr
+  name: razeedeploy-admin-cr
   namespace: razee
   annotations:
     razee.io/git-repo: "{{{GIT_REMOTE}}}"
@@ -53,17 +53,17 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kapitan-rb
+  name: razeedeploy-rb
   annotations:
     razee.io/git-repo: "{{{GIT_REMOTE}}}"
     razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: kapitan-admin-cr
+  name: razeedeploy-admin-cr
 subjects:
 - kind: ServiceAccount
-  name: kapitan-sa
+  name: razeedeploy-sa
   namespace: razee
 ---
 apiVersion: v1
@@ -74,8 +74,9 @@ data:
   MustacheTemplate: "https://github.com/razee-io/MustacheTemplate/releases/latest/download/resource.yaml"
   FeatureFlagSetLD: "https://github.com/razee-io/FeatureFlagSetLD/releases/latest/download/resource.yaml"
   ManagedSet: "https://github.com/razee-io/ManagedSet/releases/latest/download/resource.yaml"
+  RazeedeployDelta: "https://github.com/razee-io/razeedeploy-delta/releases/latest/download/resource.yaml"
 metadata:
-  name: kapitan-delta-resource-uris
+  name: razeedeploy-delta-resource-uris
   namespace: razee
   annotations:
     razee.io/git-repo: "{{{GIT_REMOTE}}}"
@@ -84,29 +85,32 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kapitan-delta
+  name: razeedeploy-delta
   namespace: razee
   annotations:
     version: {{TRAVIS_COMMIT}}
     razee.io/git-repo: "{{{GIT_REMOTE}}}"
     razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
+  labels:
+    razee/watch-resource: "lite"
 spec:
   replicas: 1
   revisionHistoryLimit: 0
   selector:
     matchLabels:
-      app: kapitan-delta
+      app: razeedeploy-delta
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: kapitan-delta
-      name: kapitan-delta
+        app: razeedeploy-delta
+        razee/watch-resource: "lite"
+      name: razeedeploy-delta
     spec:
-      serviceAccountName: kapitan-sa
+      serviceAccountName: razeedeploy-sa
       containers:
-      - image: "quay.io/razee/kapitan-delta:{{TRAVIS_TAG}}"
+      - image: "quay.io/razee/razeedeploy-delta:{{TRAVIS_TAG}}"
         resources:
           limits:
             memory: 150Mi
@@ -115,10 +119,14 @@ spec:
             memory: 50Mi
             cpu: 40m
         env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         - name: ENFORCE_INTERVAL_MINUTES
           value: '5'
         imagePullPolicy: Always
-        name: kapitan-delta
+        name: razeedeploy-delta
         livenessProbe:
           exec:
             command:
@@ -133,5 +141,5 @@ spec:
       volumes:
       - configMap:
           defaultMode: 420
-          name: kapitan-delta-resource-uris
+          name: razeedeploy-delta-resource-uris
         name: resource-uris

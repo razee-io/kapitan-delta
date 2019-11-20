@@ -137,9 +137,10 @@ async function decomposeFile(file) {
 
 async function apply(krm, file, options = {}) {
   let name = objectPath.get(file, 'metadata.name');
-  let namespace = objectPath.get(file, 'metadata.namespace');
+  let namespace = objectPath.get(file, 'metadata.namespace', process.env.NAMESPACE);
+  objectPath.set(file, 'metadata.namespace', namespace);
   let kind = objectPath.get(file, 'kind');
-  let uri = krm.uri({ name: objectPath.get(file, 'metadata.name'), namespace: objectPath.get(file, 'metadata.namespace') });
+  let uri = krm.uri({ name: name, namespace: namespace });
   log.debug(`Apply ${uri}`);
   let opt = { simple: false, resolveWithFullResponse: true };
   let liveResource;
@@ -155,16 +156,18 @@ async function apply(krm, file, options = {}) {
   }
 
   if (liveResource) {
-    let lastApplied = objectPath.get(liveResource, ['metadata', 'annotations', 'kapitan.razee.io/last-applied-configuration']);
+    let lastApplied = objectPath.get(liveResource, ['metadata', 'annotations', 'deploy.razee.io/last-applied-configuration']) ||
+      objectPath.get(liveResource, ['metadata', 'annotations', 'kapitan.razee.io/last-applied-configuration']);
     if (!lastApplied) {
-      log.warn(`${uri}: No kapitan.razee.io/last-applied-configuration found`);
-      objectPath.set(file, ['metadata', 'annotations', 'kapitan.razee.io/last-applied-configuration'], JSON.stringify(file));
+      log.warn(`${uri}: No deploy.razee.io/last-applied-configuration found`);
+      objectPath.set(file, ['metadata', 'annotations', 'deploy.razee.io/last-applied-configuration'], JSON.stringify(file));
     } else {
       lastApplied = JSON.parse(lastApplied);
 
       let original = clone(file);
       reconcileFields(file, lastApplied);
-      objectPath.set(file, ['metadata', 'annotations', 'kapitan.razee.io/last-applied-configuration'], JSON.stringify(original));
+      objectPath.set(file, ['metadata', 'annotations', 'kapitan.razee.io/last-applied-configuration'], null);
+      objectPath.set(file, ['metadata', 'annotations', 'deploy.razee.io/last-applied-configuration'], JSON.stringify(original));
     }
     if (objectPath.get(options, 'mode', 'MergePatch').toLowerCase() == 'strategicmergepatch') {
       let res = await krm.strategicMergePatch(name, namespace, file, opt);
@@ -200,7 +203,7 @@ async function apply(krm, file, options = {}) {
 }
 
 function reconcileFields(config, lastApplied, parentPath = []) {
-  // Nulls fields that existed in kapitan.razee.io/last-applied-configuration but not the new file to be applied
+  // Nulls fields that existed in deploy.razee.io/last-applied-configuration but not the new file to be applied
   // this has the effect of removing the field from the liveResource
   Object.keys(lastApplied).forEach(key => {
     let path = clone(parentPath);
