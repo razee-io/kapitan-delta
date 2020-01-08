@@ -1,3 +1,4 @@
 # Razeedeploy-delta
 
-[![Build Status](https://travis-ci.com/razee-io/razeedeploy-delta.svg?branch=master)](https://travis-ci.com/razee-io/razeedeploy-delta) [![Greenkeeper badge](https://badges.greenkeeper.io/razee-io/razeedeploy-delta.svg)](https://greenkeeper.io/)
+[![Build Status](https://travis-ci.com/razee-io/razeedeploy-delta.svg?branch=master)](https://travis-ci.com/razee-io/razeedeploy-delta)
+[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=razee-io/razeedeploy-core)](https://dependabot.com)
