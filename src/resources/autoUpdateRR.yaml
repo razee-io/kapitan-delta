@@ -1,0 +1,7 @@
+apiVersion: "deploy.razee.io/v1alpha2"
+kind: RemoteResource
+metadata:
+  name: razeedeploy-auto-update
+  namespace: "{{ desired_namespace }}"
+spec:
+  requests: []
