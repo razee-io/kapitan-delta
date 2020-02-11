@@ -43,8 +43,29 @@ async function main() {
    *  -ms, --managedset='' : install managedset at a specific version (Default 'latest')
    *
    */
-  if (argv.h) {
-    log.info('TODO: describe how to use the cli');
+  if (argv.h || argv.help) {
+    log.info(`
+-h, --help
+    : help menu
+-n, --namespace=''
+    : namespace to populate razeedeploy resources into (Default 'razeedeploy')
+-wk, --watch-keeper=''
+    : install watch-keeper at a specific version (Default 'latest')
+-rr, --remoteresource=''
+    : install remoteresource at a specific version (Default 'latest')
+-rrs3, --remoteresources3=''
+    : install remoteresources3 at a specific version (Default 'latest')
+-rrs3d, --remoteresources3decrypt=''
+    : install remoteresources3decrypt at a specific version (Default 'latest')
+-mtp, --mustachetemplate=''
+    : install mustachetemplate at a specific version (Default 'latest')
+-ffsld, --featureflagsetld=''
+    : install featureflagsetld at a specific version (Default 'latest')
+-ms, --managedset=''
+    : install managedset at a specific version (Default 'latest')
+-a, --autoupdate
+    : will create a remoteresource that will pull and keep specified resources updated to latest (even if a version was specified). if no resources specified, will do all known resources.
+    `);
     return;
   }
 
