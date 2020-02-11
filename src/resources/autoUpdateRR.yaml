@@ -3,5 +3,7 @@ kind: RemoteResource
 metadata:
   name: razeedeploy-auto-update
   namespace: "{{ desired_namespace }}"
+  labels:
+    deploy.razee.io/Reconcile: 'false'
 spec:
   requests: []
