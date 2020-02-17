@@ -73,18 +73,21 @@ async function main() {
   };
 
   try {
+    log.info('=========== Installing Prerequisites ===========');
     let preReqsYaml = await fs.readFile('./src/resources/preReqs.yaml', 'utf8');
     let preReqsYamlTemplate = handlebars.compile(preReqsYaml);
     let preReqsJson = yaml.safeLoadAll(preReqsYamlTemplate({ desired_namespace: namespace }));
     await decomposeFile(preReqsJson);
 
     let resourceUris = Object.values(resourcesObj);
+    let resources = Object.keys(resourcesObj);
     let installAll = resourceUris.reduce((shouldInstallAll, currentValue) => {
       return objectPath.get(currentValue, 'install') === undefined ? shouldInstallAll : false;
     }, true);
 
     for (var i = 0; i < resourceUris.length; i++) {
       if (installAll || resourceUris[i].install) {
+        log.info(`=========== Installing ${resources[i]}:${resourceUris[i].install} ===========`);
         let { file } = await download(resourceUris[i]);
         file = yaml.safeLoadAll(file);
         await decomposeFile(file);
@@ -94,15 +97,41 @@ async function main() {
       }
     }
 
-    if (autoUpdate) {
+    if (autoUpdate && (installAll || resourcesObj.remoteresource.install)) { // remoteresource must be installed to use autoUpdate
+      log.info('=========== Installing Auto-Update RemoteResource ===========');
       let autoUpdateYaml = await fs.readFile('./src/resources/autoUpdateRR.yaml', 'utf8');
       let autoUpdateYamlTemplate = handlebars.compile(autoUpdateYaml);
       let autoUpdateJson = yaml.safeLoad(autoUpdateYamlTemplate({ desired_namespace: namespace }));
       objectPath.set(autoUpdateJson, 'spec.requests', autoUpdateArray);
-      await decomposeFile(autoUpdateJson);
+      try {
+        await resourceExists('deploy.razee.io/v1alpha2', 'RemoteResource');
+        await decomposeFile(autoUpdateJson);
+      } catch (e) {
+        log.error(`${e}.. skipping autoUpdate`);
+      }
+    } else if (autoUpdate && !(installAll || resourcesObj.remoteresource.install)) {
+      log.info('=========== Installing Auto-Update RemoteResource ===========');
+      log.warn('RemoteResource CRD must be one of the installed resources in order to use RazeeDeploy Create Job. (eg. --rr).. Skipping autoUpdate');
     }
   } catch (e) {
     log.error(e);
+  }
+}
+
+const pause = (duration) => new Promise(res => setTimeout(res, duration));
+
+async function resourceExists(apiVersion, kind, attempts = 6, backoffInterval = 50) {
+  let krm = (await kc.getKubeResourceMeta(apiVersion, kind, 'get'));
+  let krmExists = krm ? true : false;
+  if (krmExists) {
+    log.info(`Found ${apiVersion} ${kind}`);
+    return krm;
+  } else if (attempts <= 0) {
+    throw Error(`Failed to find ${apiVersion} ${kind}`);
+  } else {
+    log.warn(`Did not find ${apiVersion} ${kind}.. attempts remaining: ${attempts}`);
+    await pause(backoffInterval);
+    return resourceExists(apiVersion, kind, --attempts, backoffInterval * 2);
   }
 }
 
@@ -139,19 +168,10 @@ async function decomposeFile(file) {
       objectPath.set(file, 'metadata.namespace', namespace);
     }
     if (krm) {
-      let selflink = krm.uri({ name: objectPath.get(file, 'metadata.name'), namespace: objectPath.get(file, 'metadata.namespace') });
       try {
-        await krm.post(file);
-        log.info(`Created ${selflink} successfully`);
+        await replace(krm, file);
       } catch (e) {
-        let statusCode = objectPath.get(e, 'error.code');
-        let reason = objectPath.get(e, 'error.reason');
-        if (statusCode == 409 && reason == 'AlreadyExists') {
-          log.info(`${selflink} already exists.. skipping`);
-        } else {
-          let message = objectPath.get(e, 'error.message');
-          log.error(`${selflink} failed to create with error: ${message}`);
-        }
+        log.error(e);
       }
     } else {
       log.error(`KubeResourceMeta not found: { kind: ${kind}, apiVersion: ${apiVersion}, name: ${objectPath.get(file, 'metadata.name')}, namespace: ${objectPath.get(file, 'metadata.namespace')} } ... skipping`);
@@ -163,46 +183,48 @@ async function replace(krm, file, options = {}) {
   let name = objectPath.get(file, 'metadata.name');
   let namespace = objectPath.get(file, 'metadata.namespace');
   let uri = krm.uri({ name: name, namespace: namespace, status: options.status });
-  this._logger.debug(`Replace ${uri}`);
+  log.info(`Replace ${uri}`);
   let response = {};
   let opt = { simple: false, resolveWithFullResponse: true };
   let liveMetadata;
-  this._logger.debug(`Get ${uri}`);
+  log.info(`- Get ${uri}`);
   let get = await krm.get(name, namespace, opt);
   if (get.statusCode === 200) {
     liveMetadata = objectPath.get(get, 'body.metadata');
-    this._logger.debug(`Get ${get.statusCode} ${uri}: resourceVersion ${objectPath.get(get, 'body.metadata.resourceVersion')}`);
+    log.info(`- Get ${get.statusCode} ${uri}: resourceVersion ${objectPath.get(get, 'body.metadata.resourceVersion')}`);
   } else if (get.statusCode === 404) {
-    this._logger.debug(`Get ${get.statusCode} ${uri}`);
+    log.info(`- Get ${get.statusCode} ${uri}`);
   } else {
-    this._logger.debug(`Get ${get.statusCode} ${uri}`);
+    log.info(`- Get ${get.statusCode} ${uri}`);
     return Promise.reject({ statusCode: get.statusCode, body: get.body });
   }
 
   if (liveMetadata) {
     objectPath.set(file, 'metadata.resourceVersion', objectPath.get(liveMetadata, 'resourceVersion'));
 
-    this._logger.debug(`Put ${uri}`);
+    log.info(`- Put ${uri}`);
     let put = await krm.put(file, opt);
     if (!(put.statusCode === 200 || put.statusCode === 201)) {
-      this._logger.debug(`Put ${put.statusCode} ${uri}`);
+      log.info(`- Put ${put.statusCode} ${uri}`);
       return Promise.reject({ statusCode: put.statusCode, body: put.body });
     } else {
-      this._logger.debug(`Put ${put.statusCode} ${uri}`);
+      log.info(`- Put ${put.statusCode} ${uri}`);
       response = { statusCode: put.statusCode, body: put.body };
     }
   } else {
-    this._logger.debug(`Post ${uri}`);
+    log.info(`- Post ${uri}`);
     let post = await krm.post(file, opt);
     if (!(post.statusCode === 200 || post.statusCode === 201 || post.statusCode === 202)) {
-      this._logger.debug(`Post ${post.statusCode} ${uri}`);
+      log.info(`- Post ${post.statusCode} ${uri}`);
       return Promise.reject({ statusCode: post.statusCode, body: post.body });
     } else {
-      this._logger.debug(`Post ${post.statusCode} ${uri}`);
+      log.info(`- Post ${post.statusCode} ${uri}`);
       response = { statusCode: post.statusCode, body: post.body };
     }
   }
   return response;
 }
+
+
 
 main().catch(log.error);
