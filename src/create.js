@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// TODO: If create fails with 409, do a .put()
+// TODO: If create/put fails due to crd not existing yet, retry after wait
+
 var log = require('./bunyan-api').createLogger('create-rd');
 var argv = require('minimist')(process.argv.slice(2));
 
@@ -143,17 +146,63 @@ async function decomposeFile(file) {
       } catch (e) {
         let statusCode = objectPath.get(e, 'error.code');
         let reason = objectPath.get(e, 'error.reason');
-        let message = objectPath.get(e, 'error.message');
         if (statusCode == 409 && reason == 'AlreadyExists') {
           log.info(`${selflink} already exists.. skipping`);
         } else {
-          log.error(`${selflink} failed to apply with error: ${message}`);
+          let message = objectPath.get(e, 'error.message');
+          log.error(`${selflink} failed to create with error: ${message}`);
         }
       }
     } else {
       log.error(`KubeResourceMeta not found: { kind: ${kind}, apiVersion: ${apiVersion}, name: ${objectPath.get(file, 'metadata.name')}, namespace: ${objectPath.get(file, 'metadata.namespace')} } ... skipping`);
     }
   }
+}
+
+async function replace(krm, file, options = {}) {
+  let name = objectPath.get(file, 'metadata.name');
+  let namespace = objectPath.get(file, 'metadata.namespace');
+  let uri = krm.uri({ name: name, namespace: namespace, status: options.status });
+  this._logger.debug(`Replace ${uri}`);
+  let response = {};
+  let opt = { simple: false, resolveWithFullResponse: true };
+  let liveMetadata;
+  this._logger.debug(`Get ${uri}`);
+  let get = await krm.get(name, namespace, opt);
+  if (get.statusCode === 200) {
+    liveMetadata = objectPath.get(get, 'body.metadata');
+    this._logger.debug(`Get ${get.statusCode} ${uri}: resourceVersion ${objectPath.get(get, 'body.metadata.resourceVersion')}`);
+  } else if (get.statusCode === 404) {
+    this._logger.debug(`Get ${get.statusCode} ${uri}`);
+  } else {
+    this._logger.debug(`Get ${get.statusCode} ${uri}`);
+    return Promise.reject({ statusCode: get.statusCode, body: get.body });
+  }
+
+  if (liveMetadata) {
+    objectPath.set(file, 'metadata.resourceVersion', objectPath.get(liveMetadata, 'resourceVersion'));
+
+    this._logger.debug(`Put ${uri}`);
+    let put = await krm.put(file, opt);
+    if (!(put.statusCode === 200 || put.statusCode === 201)) {
+      this._logger.debug(`Put ${put.statusCode} ${uri}`);
+      return Promise.reject({ statusCode: put.statusCode, body: put.body });
+    } else {
+      this._logger.debug(`Put ${put.statusCode} ${uri}`);
+      response = { statusCode: put.statusCode, body: put.body };
+    }
+  } else {
+    this._logger.debug(`Post ${uri}`);
+    let post = await krm.post(file, opt);
+    if (!(post.statusCode === 200 || post.statusCode === 201 || post.statusCode === 202)) {
+      this._logger.debug(`Post ${post.statusCode} ${uri}`);
+      return Promise.reject({ statusCode: post.statusCode, body: post.body });
+    } else {
+      this._logger.debug(`Post ${post.statusCode} ${uri}`);
+      response = { statusCode: post.statusCode, body: post.body };
+    }
+  }
+  return response;
 }
 
 main().catch(log.error);
