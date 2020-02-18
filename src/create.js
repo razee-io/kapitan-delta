@@ -30,7 +30,7 @@ const fs = require('fs-extra');
 const axios = require('axios');
 const handlebars = require('handlebars');
 
-const namespace = typeof (argv.n || argv.namespace) === 'string' ? argv.n || argv.namespace : 'razeedeploy';
+const argvNamespace = typeof (argv.n || argv.namespace) === 'string' ? argv.n || argv.namespace : 'razeedeploy';
 
 async function main() {
   if (argv.h || argv.help) {
@@ -76,7 +76,7 @@ async function main() {
     log.info('=========== Installing Prerequisites ===========');
     let preReqsYaml = await fs.readFile('./src/resources/preReqs.yaml', 'utf8');
     let preReqsYamlTemplate = handlebars.compile(preReqsYaml);
-    let preReqsJson = yaml.safeLoadAll(preReqsYamlTemplate({ desired_namespace: namespace }));
+    let preReqsJson = yaml.safeLoadAll(preReqsYamlTemplate({ desired_namespace: argvNamespace }));
     await decomposeFile(preReqsJson);
 
     let resourceUris = Object.values(resourcesObj);
@@ -101,7 +101,7 @@ async function main() {
       log.info('=========== Installing Auto-Update RemoteResource ===========');
       let autoUpdateYaml = await fs.readFile('./src/resources/autoUpdateRR.yaml', 'utf8');
       let autoUpdateYamlTemplate = handlebars.compile(autoUpdateYaml);
-      let autoUpdateJson = yaml.safeLoad(autoUpdateYamlTemplate({ desired_namespace: namespace }));
+      let autoUpdateJson = yaml.safeLoad(autoUpdateYamlTemplate({ desired_namespace: argvNamespace }));
       objectPath.set(autoUpdateJson, 'spec.requests', autoUpdateArray);
       try {
         await resourceExists('deploy.razee.io/v1alpha2', 'RemoteResource');
@@ -164,10 +164,11 @@ async function decomposeFile(file) {
     }
   } else if (file) {
     let krm = await kc.getKubeResourceMeta(apiVersion, kind, 'update');
-    if (!objectPath.has(file, 'metadata.namespace')) {
-      objectPath.set(file, 'metadata.namespace', namespace);
-    }
     if (krm) {
+      if (!objectPath.has(file, 'metadata.namespace') && krm.namespaced) {
+        log.info(`No namespace found for ${kind} ${objectPath.get(file, 'metadata.name')}.. setting namespace: ${argvNamespace}`);
+        objectPath.set(file, 'metadata.namespace', argvNamespace);
+      }
       try {
         await replace(krm, file);
       } catch (e) {
