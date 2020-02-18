@@ -36,19 +36,23 @@ async function main() {
     : help menu
 -n, --namespace=''
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
--wk, --watch-keeper=''
+--wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
--rr, --remoteresource=''
+--rd-url, --razeedash-url=''
+    : url that watch-keeper should post data to
+--rd-org-key, --razeedash-org-key=''
+    : org key that watch-keeper will use to authenticate with razeedash-url
+--rr, --remoteresource=''
     : install remoteresource at a specific version (Default 'latest')
--rrs3, --remoteresources3=''
+--rrs3, --remoteresources3=''
     : install remoteresources3 at a specific version (Default 'latest')
--rrs3d, --remoteresources3decrypt=''
+--rrs3d, --remoteresources3decrypt=''
     : install remoteresources3decrypt at a specific version (Default 'latest')
--mtp, --mustachetemplate=''
+--mtp, --mustachetemplate=''
     : install mustachetemplate at a specific version (Default 'latest')
--ffsld, --featureflagsetld=''
+--ffsld, --featureflagsetld=''
     : install featureflagsetld at a specific version (Default 'latest')
--ms, --managedset=''
+--ms, --managedset=''
     : install managedset at a specific version (Default 'latest')
 -a, --autoupdate
     : will create a remoteresource that will pull and keep specified resources updated to latest (even if a version was specified). if no resources specified, will do all known resources.
@@ -56,6 +60,8 @@ async function main() {
     return;
   }
 
+  let rdUrl = argv['rd-url'] || argv['razeedash-url'] || false;
+  let rdOrgKey = argv['rd-org-key'] || argv['razeedash-org-key'] || false;
   let autoUpdate = argv.a || argv.autoupdate || false;
   let autoUpdateArray = [];
 
@@ -71,9 +77,7 @@ async function main() {
 
   try {
     log.info('=========== Installing Prerequisites ===========');
-    let preReqsYaml = await fs.readFile('./src/resources/preReqs.yaml', 'utf8');
-    let preReqsYamlTemplate = handlebars.compile(preReqsYaml);
-    let preReqsJson = yaml.safeLoadAll(preReqsYamlTemplate({ desired_namespace: argvNamespace }));
+    let preReqsJson = await readYaml('./src/resources/preReqs.yaml', { desired_namespace: argvNamespace });
     await decomposeFile(preReqsJson);
 
     let resourceUris = Object.values(resourcesObj);
@@ -85,6 +89,16 @@ async function main() {
     for (var i = 0; i < resourceUris.length; i++) {
       if (installAll || resourceUris[i].install) {
         log.info(`=========== Installing ${resources[i]}:${resourceUris[i].install} ===========`);
+        if (resources[i] === 'watch-keeper') {
+          if (rdUrl && rdOrgKey) {
+            let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdUrl, razeedash_org_key: Buffer.from(rdOrgKey).toString('base64') });
+            await decomposeFile(wkConfigJson);
+          } else {
+            log.warn('Failed to find args \'--razeedash-url\' and \'--razeedash-org-key\'.. will create template \'watch-keeper-config\' and \'watch-keeper-secret\' if they dont exist.');
+            let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: 'insert-rd-url-here', razeedash_org_key: Buffer.from('api-key-youorgkeyhere').toString('base64') });
+            await decomposeFile(wkConfigJson, 'ensureExists');
+          }
+        }
         let { file } = await download(resourceUris[i]);
         file = yaml.safeLoadAll(file);
         await decomposeFile(file);
@@ -96,9 +110,7 @@ async function main() {
 
     if (autoUpdate && (installAll || resourcesObj.remoteresource.install)) { // remoteresource must be installed to use autoUpdate
       log.info('=========== Installing Auto-Update RemoteResource ===========');
-      let autoUpdateYaml = await fs.readFile('./src/resources/autoUpdateRR.yaml', 'utf8');
-      let autoUpdateYamlTemplate = handlebars.compile(autoUpdateYaml);
-      let autoUpdateJson = yaml.safeLoad(autoUpdateYamlTemplate({ desired_namespace: argvNamespace }));
+      let autoUpdateJson = await readYaml('./src/resources/autoUpdateRR.yaml', { desired_namespace: argvNamespace });
       objectPath.set(autoUpdateJson, 'spec.requests', autoUpdateArray);
       try {
         await crdRegistered('deploy.razee.io/v1alpha2', 'RemoteResource');
@@ -113,6 +125,13 @@ async function main() {
   } catch (e) {
     log.error(e);
   }
+}
+
+async function readYaml(path, templateOptions = {}) {
+  let yamlFile = await fs.readFile(path, 'utf8');
+  let yamlTemplate = handlebars.compile(yamlFile);
+  let templatedJson = yaml.safeLoadAll(yamlTemplate(templateOptions));
+  return templatedJson;
 }
 
 const pause = (duration) => new Promise(res => setTimeout(res, duration));
@@ -146,18 +165,18 @@ async function download(resourceUriObj) {
 
 }
 
-async function decomposeFile(file) {
+async function decomposeFile(file, mode = 'replace') {
   let kind = objectPath.get(file, ['kind'], '');
   let apiVersion = objectPath.get(file, ['apiVersion'], '');
   let items = objectPath.get(file, ['items']);
 
   if (Array.isArray(file)) {
     for (let i = 0; i < file.length; i++) {
-      await decomposeFile(file[i]);
+      await decomposeFile(file[i], mode);
     }
   } else if (kind.toLowerCase() == 'list' && Array.isArray(items)) {
     for (let i = 0; i < items.length; i++) {
-      await decomposeFile(items[i]);
+      await decomposeFile(items[i], mode);
     }
   } else if (file) {
     let krm = await kc.getKubeResourceMeta(apiVersion, kind, 'update');
@@ -167,7 +186,11 @@ async function decomposeFile(file) {
         objectPath.set(file, 'metadata.namespace', argvNamespace);
       }
       try {
-        await replace(krm, file);
+        if (mode === 'ensureExists') {
+          await ensureExists(krm, file);
+        } else {
+          await replace(krm, file);
+        }
       } catch (e) {
         log.error(e);
       }
@@ -223,6 +246,38 @@ async function replace(krm, file, options = {}) {
   return response;
 }
 
+async function ensureExists(krm, file, options = {}) {
+  let name = objectPath.get(file, 'metadata.name');
+  let namespace = objectPath.get(file, 'metadata.namespace');
+  let uri = krm.uri({ name: name, namespace: namespace, status: options.status });
+  log.info(`EnsureExists ${uri}`);
+  let response = {};
+  let opt = { simple: false, resolveWithFullResponse: true };
 
+  let get = await krm.get(name, namespace, opt);
+  if (get.statusCode === 200) {
+    log.info(`- Get ${get.statusCode} ${uri}`);
+    return { statusCode: get.statusCode, body: get.body };
+  } else if (get.statusCode === 404) { // not found -> must create
+    log.info(`- Get ${get.statusCode} ${uri}`);
+  } else {
+    log.info(`- Get ${get.statusCode} ${uri}`);
+    return Promise.reject({ statusCode: get.statusCode, body: get.body });
+  }
+
+  log.info(`- Post ${uri}`);
+  let post = await krm.post(file, opt);
+  if (post.statusCode === 200 || post.statusCode === 201 || post.statusCode === 202) {
+    log.info(`- Post ${post.statusCode} ${uri}`);
+    return { statusCode: post.statusCode, body: post.body };
+  } else if (post.statusCode === 409) { // already exists
+    log.info(`- Post ${post.statusCode} ${uri}`);
+    response = { statusCode: 200, body: post.body };
+  } else {
+    log.info(`- Post ${post.statusCode} ${uri}`);
+    return Promise.reject({ statusCode: post.statusCode, body: post.body });
+  }
+  return response;
+}
 
 main().catch(log.error);
