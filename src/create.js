@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-// TODO: If create fails with 409, do a .put()
-// TODO: If create/put fails due to crd not existing yet, retry after wait
-
 var log = require('./bunyan-api').createLogger('create-rd');
 var argv = require('minimist')(process.argv.slice(2));
 
