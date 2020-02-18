@@ -104,7 +104,7 @@ async function main() {
       let autoUpdateJson = yaml.safeLoad(autoUpdateYamlTemplate({ desired_namespace: argvNamespace }));
       objectPath.set(autoUpdateJson, 'spec.requests', autoUpdateArray);
       try {
-        await resourceExists('deploy.razee.io/v1alpha2', 'RemoteResource');
+        await crdRegistered('deploy.razee.io/v1alpha2', 'RemoteResource');
         await decomposeFile(autoUpdateJson);
       } catch (e) {
         log.error(`${e}.. skipping autoUpdate`);
@@ -120,7 +120,7 @@ async function main() {
 
 const pause = (duration) => new Promise(res => setTimeout(res, duration));
 
-async function resourceExists(apiVersion, kind, attempts = 6, backoffInterval = 50) {
+async function crdRegistered(apiVersion, kind, attempts = 6, backoffInterval = 50) {
   let krm = (await kc.getKubeResourceMeta(apiVersion, kind, 'get'));
   let krmExists = krm ? true : false;
   if (krmExists) {
@@ -131,7 +131,7 @@ async function resourceExists(apiVersion, kind, attempts = 6, backoffInterval = 
   } else {
     log.warn(`Did not find ${apiVersion} ${kind}.. attempts remaining: ${attempts}`);
     await pause(backoffInterval);
-    return resourceExists(apiVersion, kind, --attempts, backoffInterval * 2);
+    return crdRegistered(apiVersion, kind, --attempts, backoffInterval * 2);
   }
 }
 
