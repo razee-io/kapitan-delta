@@ -136,18 +136,19 @@ async function readYaml(path, templateOptions = {}) {
 
 const pause = (duration) => new Promise(res => setTimeout(res, duration));
 
-async function crdRegistered(apiVersion, kind, attempts = 6, backoffInterval = 50) {
+async function crdRegistered(apiVersion, kind, attempts = 5, backoffInterval = 50) {
+  console.log('trying');
   let krm = (await kc.getKubeResourceMeta(apiVersion, kind, 'get'));
   let krmExists = krm ? true : false;
   if (krmExists) {
     log.info(`Found ${apiVersion} ${kind}`);
     return krm;
-  } else if (attempts <= 0) {
+  } else if (--attempts <= 0) {
     throw Error(`Failed to find ${apiVersion} ${kind}`);
   } else {
     log.warn(`Did not find ${apiVersion} ${kind}.. attempts remaining: ${attempts}`);
     await pause(backoffInterval);
-    return crdRegistered(apiVersion, kind, --attempts, backoffInterval * 2);
+    return crdRegistered(apiVersion, kind, attempts, backoffInterval * 2);
   }
 }
 
