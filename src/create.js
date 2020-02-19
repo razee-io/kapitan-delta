@@ -137,7 +137,6 @@ async function readYaml(path, templateOptions = {}) {
 const pause = (duration) => new Promise(res => setTimeout(res, duration));
 
 async function crdRegistered(apiVersion, kind, attempts = 5, backoffInterval = 50) {
-  console.log('trying');
   let krm = (await kc.getKubeResourceMeta(apiVersion, kind, 'get'));
   let krmExists = krm ? true : false;
   if (krmExists) {
