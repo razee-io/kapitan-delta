@@ -111,7 +111,7 @@ async function main() {
     if (autoUpdate && (installAll || resourcesObj.remoteresource.install)) { // remoteresource must be installed to use autoUpdate
       log.info('=========== Installing Auto-Update RemoteResource ===========');
       let autoUpdateJson = await readYaml('./src/resources/autoUpdateRR.yaml', { desired_namespace: argvNamespace });
-      objectPath.set(autoUpdateJson, 'spec.requests', autoUpdateArray);
+      objectPath.set(autoUpdateJson, '0.spec.requests', autoUpdateArray);
       try {
         await crdRegistered('deploy.razee.io/v1alpha2', 'RemoteResource');
         await decomposeFile(autoUpdateJson);
