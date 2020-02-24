@@ -14,6 +14,7 @@ script:
   - if [ -n "${TRAVIS_TAG}" ]; then docker tag quay.io/razee/razeedeploy-delta:${TRAVIS_COMMIT} quay.io/razee/razeedeploy-delta:${TRAVIS_TAG}; fi
   - docker images
   - ./build/process-template.sh kubernetes/razeedeploy-delta/resource.yaml >/tmp/resource.yaml
+  - ./build/process-template.sh kubernetes/job/resource.yaml >/tmp/job.yaml
 
 before_deploy:
   - docker login -u="${QUAY_ID}" -p="${QUAY_TOKEN}" quay.io
@@ -35,7 +36,9 @@ deploy:
       tags: true
       condition: ${TRAVIS_TAG} =~ ^[0-9]+\.[0-9]+\.[0-9]+$
   - provider: releases
-    file: /tmp/resource.yaml
+    file: 
+      - "/tmp/resource.yaml"
+      - "/tmp/job.yaml"
     skip_cleanup: true
     api_key:
       secure: "${GITHUB_TOKEN}"
