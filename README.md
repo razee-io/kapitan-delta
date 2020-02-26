@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.com/razee-io/razeedeploy-delta.svg?branch=master)](https://travis-ci.com/razee-io/razeedeploy-delta)
 [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=razee-io/razeedeploy-delta)](https://dependabot.com)
 
-## Running Install/Remove Job Mnaually
+## Running Install/Remove Job Manually
 
 1. Download [Job](https://github.com/razee-io/razeedeploy-delta/releases/latest/download/job.yaml)
 1. Replace `{{ COMMAND }}` with either `install` or `remove`
