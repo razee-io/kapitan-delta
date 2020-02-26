@@ -90,7 +90,7 @@ async function main() {
 
     for (var i = 0; i < resourceUris.length; i++) {
       if (installAll || resourceUris[i].install) {
-        log.info(`=========== Installing ${resources[i]}:${resourceUris[i].install} ===========`);
+        log.info(`=========== Installing ${resources[i]}:${resourceUris[i].install || 'Install All Resources'} ===========`);
         if (resources[i] === 'watch-keeper') {
           if (rdUrl && rdOrgKey) {
             let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdUrl, razeedash_org_key: Buffer.from(rdOrgKey).toString('base64') });

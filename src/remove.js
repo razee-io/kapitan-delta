@@ -75,7 +75,7 @@ async function main() {
 
     for (let i = 0; i < resourceUris.length; i++) {
       if (removeAll || resourceUris[i].remove) {
-        log.info(`=========== Removing ${resources[i]}:${resourceUris[i].remove} ===========`);
+        log.info(`=========== Removing ${resources[i]}:${resourceUris[i].remove || 'Remove All Resources'} ===========`);
         if (resources[i] === 'watch-keeper') {
           let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace });
           await deleteFile(wkConfigJson);
