@@ -13,21 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ################################################################################
+{{=<% %>=}}
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: razeedeploy-job
+  name: "{{ NAMESPACE }}"
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: razeedeploy-job-sa
-  namespace: razeedeploy-job
+  name: razeedeploy-sa
+  namespace: "{{ NAMESPACE }}"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: razeedeploy-job-admin-cr
+  name: razeedeploy-admin-cr
 rules:
 - apiGroups:
   - '*'
@@ -43,32 +44,31 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: razeedeploy-job-rb
+  name: razeedeploy-rb
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: razeedeploy-job-admin-cr
+  name: razeedeploy-admin-cr
 subjects:
 - kind: ServiceAccount
-  name: razeedeploy-job-sa
-  namespace: razeedeploy-job
+  name: razeedeploy-sa
+  namespace: "{{ NAMESPACE }}"
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: razeedeploy-job
-  namespace: razeedeploy-job
+  namespace: {{ NAMESPACE }}
 spec:
   template:
     spec:
-      serviceAccountName: razeedeploy-job-sa
+      serviceAccountName: razeedeploy-sa
       containers:
       - name: razeedeploy-job
-        image: "quay.io/razee/razeedeploy-delta:{{TRAVIS_TAG}}"
-{{=<% %>=}}
-        command: ["node", "src/{{ COMMAND }}"]
+        image: "quay.io/razee/razeedeploy-delta:<%TRAVIS_TAG%>"
+        command: ["node", "src/{{ COMMAND }}", "--namespace={{ NAMESPACE }}"]
         args: {{ ARGS_ARRAY }}
         # see README.md for args options. https://github.com/razee-io/razeedeploy-delta/blob/master/README.md
-<%={{ }}=%>
       restartPolicy: Never
   backoffLimit: 2
+<%={{ }}=%>
