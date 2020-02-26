@@ -68,6 +68,7 @@ spec:
 {{=<% %>=}}
         command: ["node", "src/{{ COMMAND }}"]
         args: {{ ARGS_ARRAY }}
+        # see README.md for args options. https://github.com/razee-io/razeedeploy-delta/blob/master/README.md
 <%={{ }}=%>
       restartPolicy: Never
   backoffLimit: 2
