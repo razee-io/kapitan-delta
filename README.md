@@ -8,6 +8,7 @@
 1. Download [Job](https://github.com/razee-io/razeedeploy-delta/releases/latest/download/job.yaml)
 1. Replace `{{ COMMAND }}` with either `install` or `remove`
 1. Replace `{{ ARGS_ARRAY }}` with and array of the options you want to run. eg. `["--rr", "--wk", "-a"]`
+1. Run `kubectl apply -f job.yaml`
 
 ### Install Job Options
 
