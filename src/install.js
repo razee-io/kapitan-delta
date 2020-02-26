@@ -17,6 +17,8 @@
 var log = require('./bunyan-api').createLogger('create-rd');
 var argv = require('minimist')(process.argv.slice(2));
 
+log.debug(`Running Install with args: ${JSON.stringify(argv)}`);
+
 const { KubeClass, KubeApiConfig } = require('@razee/kubernetes-util');
 const kubeApiConfig = KubeApiConfig();
 const kc = new KubeClass(kubeApiConfig);
@@ -88,7 +90,7 @@ async function main() {
 
     for (var i = 0; i < resourceUris.length; i++) {
       if (installAll || resourceUris[i].install) {
-        log.info(`=========== Installing ${resources[i]}:${resourceUris[i].install} ===========`);
+        log.info(`=========== Installing ${resources[i]}:${resourceUris[i].install || 'Install All Resources'} ===========`);
         if (resources[i] === 'watch-keeper') {
           if (rdUrl && rdOrgKey) {
             let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdUrl, razeedash_org_key: Buffer.from(rdOrgKey).toString('base64') });
