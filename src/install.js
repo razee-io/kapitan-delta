@@ -17,6 +17,8 @@
 var log = require('./bunyan-api').createLogger('create-rd');
 var argv = require('minimist')(process.argv.slice(2));
 
+log.debug(`Running Install with args: ${JSON.stringify(argv)}`);
+
 const { KubeClass, KubeApiConfig } = require('@razee/kubernetes-util');
 const kubeApiConfig = KubeApiConfig();
 const kc = new KubeClass(kubeApiConfig);
