@@ -49,7 +49,7 @@
     : help menu
 -n, --namespace=''
     : namespace to remove razeedeploy resources from (Default 'razeedeploy')
---dn, --delete-namespace=''
+--dn, --delete-namespace
     : include namespace as a resource to delete (Default false)
 -t, --timeout
     : time (minutes) before failing to delete CRD (Default 5)
