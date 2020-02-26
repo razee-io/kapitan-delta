@@ -13,7 +13,7 @@
 
 [Code Reference](https://github.com/razee-io/razeedeploy-delta/blob/master/src/install.js#L35-L63)
 
-```
+```text
 -h, --help
     : help menu
 -n, --namespace=''
@@ -44,7 +44,7 @@
 
 [Code Reference](https://github.com/razee-io/razeedeploy-delta/blob/master/src/remove.js#L33-L49)
 
-```
+```text
 -h, --help
     : help menu
 -n, --namespace=''
