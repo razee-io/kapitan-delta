@@ -9,6 +9,7 @@
 1. Replace `{{ COMMAND }}` with either `install` or `remove`
 1. Replace `{{ ARGS_ARRAY }}` with and array of the options you want to run. eg. `["--rr", "--wk", "-a"]`
 1. Run `kubectl apply -f job.yaml`
+1. Run `kubectl delete -f job.yaml` to cleanup the job and resources the job needed in order to run. (this wont touch all the razeedeploy resources the install job actually installed)
 
 ### Install Job Options
 
