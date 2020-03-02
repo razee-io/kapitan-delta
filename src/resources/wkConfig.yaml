@@ -41,3 +41,18 @@ kind: ConfigMap
 metadata:
   name: watch-keeper-non-namespaced
   namespace: "{{ desired_namespace }}"
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: watch-keeper-deny-ingress
+  annotations:
+    razee.io/git-repo: "{{{GIT_REMOTE}}}"
+    razee.io/commit-sha: "{{TRAVIS_COMMIT}}"
+spec:
+  podSelector:
+    matchLabels:
+      app: watch-keeper
+  policyTypes:
+  - Ingress
+  ingress: []
