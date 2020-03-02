@@ -29,3 +29,15 @@ metadata:
   namespace: "{{ desired_namespace }}"
 data:
   RAZEEDASH_ORG_KEY: "{{{ razeedash_org_key }}}"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: watch-keeper-limit-poll
+  namespace: "{{ desired_namespace }}"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: watch-keeper-non-namespaced
+  namespace: "{{ desired_namespace }}"
