@@ -50,6 +50,7 @@ async function main() {
 
   let resourcesObj = {
     'watch-keeper': { remove: argv.wk || argv['watch-keeper'], uri: 'https://github.com/razee-io/watch-keeper/releases/{{install_version}}/resource.yaml' },
+    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: 'https://github.com/razee-io/ClusterSubscription/releases/{{install_version}}/resource.yaml' },
     'remoteresource': { remove: argv.rr || argv['remoteresource'], uri: 'https://github.com/razee-io/RemoteResource/releases/{{install_version}}/resource.yaml' },
     'remoteresources3': { remove: argv.rrs3 || argv['remoteresources3'], uri: 'https://github.com/razee-io/RemoteResourceS3/releases/{{install_version}}/resource.yaml' },
     'remoteresources3decrypt': { remove: argv.rrs3d || argv['remoteresources3decrypt'], uri: 'https://github.com/razee-io/RemoteResourceS3Decrypt/releases/{{install_version}}/resource.yaml' },
@@ -79,6 +80,9 @@ async function main() {
         if (resources[i] === 'watch-keeper') {
           let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace });
           await deleteFile(wkConfigJson);
+        } else if (resources[i] === 'clustersubscription') {
+          let csConfigJson = await readYaml('./src/resources/csConfig.yaml', { desired_namespace: argvNamespace });
+          await deleteFile(csConfigJson);
         }
         let { file } = await download(resourceUris[i]);
         file = yaml.safeLoadAll(file);

@@ -40,10 +40,14 @@ async function main() {
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
+--cs, --clustersubscription=''
+    : install clustersubscription at a specific version (Default 'latest')
 --rd-url, --razeedash-url=''
     : url that watch-keeper should post data to
 --rd-org-key, --razeedash-org-key=''
     : org key that watch-keeper will use to authenticate with razeedash-url
+--rd-tags, --razeedash-tags=''
+    : one or more comma-separated subscription tags which were defined in Razeedash
 --rr, --remoteresource=''
     : install remoteresource at a specific version (Default 'latest')
 --rrs3, --remoteresources3=''
@@ -64,11 +68,14 @@ async function main() {
 
   let rdUrl = argv['rd-url'] || argv['razeedash-url'] || false;
   let rdOrgKey = argv['rd-org-key'] || argv['razeedash-org-key'] || false;
+  let rdTags = argv['rd-tags'] || argv['razeedash-tags'] || '';
+
   let autoUpdate = argv.a || argv.autoupdate || false;
   let autoUpdateArray = [];
 
   let resourcesObj = {
     'watch-keeper': { install: argv.wk || argv['watch-keeper'], uri: 'https://github.com/razee-io/watch-keeper/releases/{{install_version}}/resource.yaml' },
+    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: 'https://github.com/razee-io/ClusterSubscription/releases/{{install_version}}/resource.yaml' },
     'remoteresource': { install: argv.rr || argv['remoteresource'], uri: 'https://github.com/razee-io/RemoteResource/releases/{{install_version}}/resource.yaml' },
     'remoteresources3': { install: argv.rrs3 || argv['remoteresources3'], uri: 'https://github.com/razee-io/RemoteResourceS3/releases/{{install_version}}/resource.yaml' },
     'remoteresources3decrypt': { install: argv.rrs3d || argv['remoteresources3decrypt'], uri: 'https://github.com/razee-io/RemoteResourceS3Decrypt/releases/{{install_version}}/resource.yaml' },
@@ -94,11 +101,20 @@ async function main() {
         if (resources[i] === 'watch-keeper') {
           if (rdUrl && rdOrgKey) {
             let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdUrl, razeedash_org_key: Buffer.from(rdOrgKey).toString('base64') });
-            await decomposeFile(wkConfigJson);
+            await decomposeFile(wkConfigJson, 'ensureExists');
           } else {
             log.warn('Failed to find args \'--razeedash-url\' and \'--razeedash-org-key\'.. will create template \'watch-keeper-config\' and \'watch-keeper-secret\' if they dont exist.');
             let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: 'insert-rd-url-here', razeedash_org_key: Buffer.from('api-key-youorgkeyhere').toString('base64') });
             await decomposeFile(wkConfigJson, 'ensureExists');
+          }
+        } else if (resources[i] === 'clustersubscription') {
+          if (rdUrl && rdOrgKey) {
+            let csConfigJson = await readYaml('./src/resources/csConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdUrl, razeedash_org_key: Buffer.from(rdOrgKey).toString('base64'), razeedash_tags: rdTags });
+            await decomposeFile(csConfigJson, 'ensureExists');
+          } else {
+            log.warn('Failed to find args \'--razeedash-url\' and \'--razeedash-org-key\'.. will create template \'clustersubscription\' ConfigMap and Secret if they dont exist.');
+            let csConfigJson = await readYaml('./src/resources/csConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: 'insert-rd-url-here', razeedash_org_key: Buffer.from('api-key-youorgkeyhere').toString('base64'), razeedash_tags: rdTags });
+            await decomposeFile(csConfigJson, 'ensureExists');
           }
         }
         let { file } = await download(resourceUris[i]);

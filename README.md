@@ -22,10 +22,14 @@
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
+--cs, --clustersubscription=''
+    : install clustersubscription at a specific version (Default 'latest')
 --rd-url, --razeedash-url=''
     : url that watch-keeper should post data to
 --rd-org-key, --razeedash-org-key=''
     : org key that watch-keeper will use to authenticate with razeedash-url
+--rd-tags, --razeedash-tags=''
+    : one or more comma-separated subscription tags which were defined in Razeedash
 --rr, --remoteresource=''
     : install remoteresource at a specific version (Default 'latest')
 --rrs3, --remoteresources3=''
