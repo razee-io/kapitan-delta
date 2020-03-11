@@ -108,6 +108,10 @@ async function main() {
             await decomposeFile(wkConfigJson, 'ensureExists');
           }
         } else if (resources[i] === 'clustersubscription') {
+          if (!(installAll || resourcesObj.remoteresource.install)) {
+            log.warn('RemoteResource CRD must be one of the installed resources in order to use ClusterSubscription. (ie. --rr --cs).. Skipping ClusterSubscription');
+            continue;
+          }
           if (rdUrl && rdOrgKey) {
             let csConfigJson = await readYaml('./src/resources/csConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdUrl, razeedash_org_key: Buffer.from(rdOrgKey).toString('base64'), razeedash_tags: rdTags });
             await decomposeFile(csConfigJson, 'ensureExists');
@@ -138,7 +142,7 @@ async function main() {
       }
     } else if (autoUpdate && !(installAll || resourcesObj.remoteresource.install)) {
       log.info('=========== Installing Auto-Update RemoteResource ===========');
-      log.warn('RemoteResource CRD must be one of the installed resources in order to use RazeeDeploy Create Job. (eg. --rr).. Skipping autoUpdate');
+      log.warn('RemoteResource CRD must be one of the installed resources in order to use autoUpdate. (ie. --rr -a).. Skipping autoUpdate');
     }
   } catch (e) {
     log.error(e);
