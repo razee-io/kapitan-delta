@@ -20,6 +20,8 @@
     : help menu
 -n, --namespace=''
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
+-s, --file-source=''
+    : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
@@ -57,6 +59,8 @@
     : namespace to remove razeedeploy resources from (Default 'razeedeploy')
 --dn, --delete-namespace
     : include namespace as a resource to delete (Default false)
+-s, --file-source=''
+    : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com')
 -t, --timeout
     : time (minutes) before failing to delete CRD (Default 5)
 -a, --attempts

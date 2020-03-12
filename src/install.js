@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-var log = require('./bunyan-api').createLogger('create-rd');
-var argv = require('minimist')(process.argv.slice(2));
+const log = require('./bunyan-api').createLogger('create-rd');
+const argv = require('minimist')(process.argv.slice(2));
+const validUrl = require('valid-url');
 
 log.debug(`Running Install with args: ${JSON.stringify(argv)}`);
 
@@ -38,6 +39,8 @@ async function main() {
     : help menu
 -n, --namespace=''
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
+-s, --file-source=''
+    : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
@@ -66,6 +69,13 @@ async function main() {
     return;
   }
 
+  let fileSource = typeof (argv.s || argv['file-source']) === 'string' ? argv.s || argv['file-source'] : 'https://github.com';
+  if (!validUrl.isUri(fileSource)) {
+    return log.error(`'${fileSource}' not a valid source url.`);
+  } else if (fileSource.endsWith('/')) {
+    fileSource = fileSource.replace(/\/+$/g, '');
+  }
+
   let rdUrl = argv['rd-url'] || argv['razeedash-url'] || false;
   let rdOrgKey = argv['rd-org-key'] || argv['razeedash-org-key'] || false;
   let rdTags = argv['rd-tags'] || argv['razeedash-tags'] || '';
@@ -74,14 +84,14 @@ async function main() {
   let autoUpdateArray = [];
 
   let resourcesObj = {
-    'watch-keeper': { install: argv.wk || argv['watch-keeper'], uri: 'https://github.com/razee-io/watch-keeper/releases/{{install_version}}/resource.yaml' },
-    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: 'https://github.com/razee-io/ClusterSubscription/releases/{{install_version}}/resource.yaml' },
-    'remoteresource': { install: argv.rr || argv['remoteresource'], uri: 'https://github.com/razee-io/RemoteResource/releases/{{install_version}}/resource.yaml' },
-    'remoteresources3': { install: argv.rrs3 || argv['remoteresources3'], uri: 'https://github.com/razee-io/RemoteResourceS3/releases/{{install_version}}/resource.yaml' },
-    'remoteresources3decrypt': { install: argv.rrs3d || argv['remoteresources3decrypt'], uri: 'https://github.com/razee-io/RemoteResourceS3Decrypt/releases/{{install_version}}/resource.yaml' },
-    'mustachetemplate': { install: argv.mtp || argv['mustachetemplate'], uri: 'https://github.com/razee-io/MustacheTemplate/releases/{{install_version}}/resource.yaml' },
-    'featureflagsetld': { install: argv.ffsld || argv['featureflagsetld'], uri: 'https://github.com/razee-io/FeatureFlagSetLD/releases/{{install_version}}/resource.yaml' },
-    'managedset': { install: argv.ms || argv['managedset'], uri: 'https://github.com/razee-io/ManagedSet/releases/{{install_version}}/resource.yaml' }
+    'watch-keeper': { install: argv.wk || argv['watch-keeper'], uri: `${fileSource}/razee-io/watch-keeper/releases/{{install_version}}/resource.yaml` },
+    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/razee-io/ClusterSubscription/releases/{{install_version}}/resource.yaml` },
+    'remoteresource': { install: argv.rr || argv['remoteresource'], uri: `${fileSource}/razee-io/RemoteResource/releases/{{install_version}}/resource.yaml` },
+    'remoteresources3': { install: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/razee-io/RemoteResourceS3/releases/{{install_version}}/resource.yaml` },
+    'remoteresources3decrypt': { install: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/razee-io/RemoteResourceS3Decrypt/releases/{{install_version}}/resource.yaml` },
+    'mustachetemplate': { install: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/razee-io/MustacheTemplate/releases/{{install_version}}/resource.yaml` },
+    'featureflagsetld': { install: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/razee-io/FeatureFlagSetLD/releases/{{install_version}}/resource.yaml` },
+    'managedset': { install: argv.ms || argv['managedset'], uri: `${fileSource}/razee-io/ManagedSet/releases/{{install_version}}/resource.yaml` }
   };
 
   try {

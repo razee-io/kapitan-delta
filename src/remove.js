@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-var log = require('./bunyan-api').createLogger('create-rd');
-var argv = require('minimist')(process.argv.slice(2));
+const log = require('./bunyan-api').createLogger('create-rd');
+const argv = require('minimist')(process.argv.slice(2));
+const validUrl = require('valid-url');
 
 const { KubeClass, KubeApiConfig } = require('@razee/kubernetes-util');
 const kubeApiConfig = KubeApiConfig();
@@ -38,6 +39,8 @@ async function main() {
     : namespace to remove razeedeploy resources from (Default 'razeedeploy')
 --dn, --delete-namespace=''
     : include namespace as a resource to delete (Default false)
+-s, --file-source=''
+    : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com')
 -t, --timeout
     : time (minutes) before failing to delete CRD (Default 5)
 -a, --attempts
@@ -48,15 +51,22 @@ async function main() {
     return;
   }
 
+  let fileSource = typeof (argv.s || argv['file-source']) === 'string' ? argv.s || argv['file-source'] : 'https://github.com';
+  if (!validUrl.isUri(fileSource)) {
+    return log.error(`'${fileSource}' not a valid source url.`);
+  } else if (fileSource.endsWith('/')) {
+    fileSource = fileSource.replace(/\/+$/g, '');
+  }
+
   let resourcesObj = {
-    'watch-keeper': { remove: argv.wk || argv['watch-keeper'], uri: 'https://github.com/razee-io/watch-keeper/releases/{{install_version}}/resource.yaml' },
-    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: 'https://github.com/razee-io/ClusterSubscription/releases/{{install_version}}/resource.yaml' },
-    'remoteresource': { remove: argv.rr || argv['remoteresource'], uri: 'https://github.com/razee-io/RemoteResource/releases/{{install_version}}/resource.yaml' },
-    'remoteresources3': { remove: argv.rrs3 || argv['remoteresources3'], uri: 'https://github.com/razee-io/RemoteResourceS3/releases/{{install_version}}/resource.yaml' },
-    'remoteresources3decrypt': { remove: argv.rrs3d || argv['remoteresources3decrypt'], uri: 'https://github.com/razee-io/RemoteResourceS3Decrypt/releases/{{install_version}}/resource.yaml' },
-    'mustachetemplate': { remove: argv.mtp || argv['mustachetemplate'], uri: 'https://github.com/razee-io/MustacheTemplate/releases/{{install_version}}/resource.yaml' },
-    'featureflagsetld': { remove: argv.ffsld || argv['featureflagsetld'], uri: 'https://github.com/razee-io/FeatureFlagSetLD/releases/{{install_version}}/resource.yaml' },
-    'managedset': { remove: argv.ms || argv['managedset'], uri: 'https://github.com/razee-io/ManagedSet/releases/{{install_version}}/resource.yaml' }
+    'watch-keeper': { remove: argv.wk || argv['watch-keeper'], uri: `${fileSource}/razee-io/watch-keeper/releases/{{install_version}}/resource.yaml` },
+    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/razee-io/ClusterSubscription/releases/{{install_version}}/resource.yaml` },
+    'remoteresource': { remove: argv.rr || argv['remoteresource'], uri: `${fileSource}/razee-io/RemoteResource/releases/{{install_version}}/resource.yaml` },
+    'remoteresources3': { remove: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/razee-io/RemoteResourceS3/releases/{{install_version}}/resource.yaml` },
+    'remoteresources3decrypt': { remove: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/razee-io/RemoteResourceS3Decrypt/releases/{{install_version}}/resource.yaml` },
+    'mustachetemplate': { remove: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/razee-io/MustacheTemplate/releases/{{install_version}}/resource.yaml` },
+    'featureflagsetld': { remove: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/razee-io/FeatureFlagSetLD/releases/{{install_version}}/resource.yaml` },
+    'managedset': { remove: argv.ms || argv['managedset'], uri: `${fileSource}/razee-io/ManagedSet/releases/{{install_version}}/resource.yaml` }
   };
 
   let dltNamespace = typeof (argv.dn || argv['delete-namespace']) === 'boolean' ? argv.dn || argv['delete-namespace'] : false;
