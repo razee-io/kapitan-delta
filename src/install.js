@@ -87,7 +87,7 @@ async function main() {
   try {
     log.info('=========== Installing Prerequisites ===========');
     let preReqsJson = await readYaml('./src/resources/preReqs.yaml', { desired_namespace: argvNamespace });
-    await decomposeFile(preReqsJson);
+    await decomposeFile(preReqsJson, 'ensureExists');
 
     let resourceUris = Object.values(resourcesObj);
     let resources = Object.keys(resourcesObj);

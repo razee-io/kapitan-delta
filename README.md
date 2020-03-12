@@ -64,3 +64,27 @@
 -f, --force
     : force delete the CRD and CR instances without allowing the controller to clean up children (Default false)
 ```
+
+## Ensure Exist Resources
+
+Some resources created by this job are considered `ensure exist`. That means
+if they have been created/modified already, the install job wont replace whats
+already there. If you would like to re-install RazeeDeploy on a cluster completely
+from scratch, you must first delete these resources:
+
+1. PreReqs: (all installs)
+  - ServiceAccount: `razeedeploy-sa`
+  - ClusterRole: `razeedeploy-admin-cr`
+  - ClusterRoleBinding: `razeedeploy-rb`
+1. Watch-Keeper Config: (only when installing watch-keeper)
+  - ServiceAccount: `watch-keeper-sa`
+  - ClusterRole: `cluster-reader`
+  - ClusterRoleBinding: `watch-keeper-rb`
+  - ConfigMap: `watch-keeper-config`
+  - Secret: `watch-keeper-secret`
+  - ConfigMap: `watch-keeper-limit-poll`
+  - ConfigMap: `watch-keeper-non-namespaced`
+  - NetworkPolicy: `watch-keeper-deny-ingress`
+1. ClusterSubscription Config: (only when installing clustersubscription)
+  - ConfigMap: `clustersubscription`
+  - Secret: `clustersubscription`
