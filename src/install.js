@@ -109,27 +109,19 @@ async function main() {
       if (installAll || resourceUris[i].install) {
         log.info(`=========== Installing ${resources[i]}:${resourceUris[i].install || 'Install All Resources'} ===========`);
         if (resources[i] === 'watch-keeper') {
-          if (rdUrl && rdOrgKey) {
-            let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdUrl, razeedash_org_key: Buffer.from(rdOrgKey).toString('base64') });
-            await decomposeFile(wkConfigJson, 'ensureExists');
-          } else {
-            log.warn('Failed to find args \'--razeedash-url\' and \'--razeedash-org-key\'.. will create template \'watch-keeper-config\' and \'watch-keeper-secret\' if they dont exist.');
-            let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: 'insert-rd-url-here', razeedash_org_key: Buffer.from('api-key-youorgkeyhere').toString('base64') });
-            await decomposeFile(wkConfigJson, 'ensureExists');
-          }
+          if (!rdUrl) log.warn('Failed to find arg \'--razeedash-url\'.. will create template \'watch-keeper-config\'.');
+          if (!rdOrgKey) log.warn('Failed to find arg\'--razeedash-org-key\'.. will create template \'watch-keeper-secret\'.');
+          let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdUrl || 'insert-rd-url-here', razeedash_org_key: Buffer.from(rdOrgKey || 'api-key-youorgkeyhere').toString('base64') });
+          await decomposeFile(wkConfigJson, 'ensureExists');
         } else if (resources[i] === 'clustersubscription') {
           if (!(installAll || resourcesObj.remoteresource.install)) {
             log.warn('RemoteResource CRD must be one of the installed resources in order to use ClusterSubscription. (ie. --rr --cs).. Skipping ClusterSubscription');
             continue;
           }
-          if (rdUrl && rdOrgKey) {
-            let csConfigJson = await readYaml('./src/resources/csConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdUrl, razeedash_org_key: Buffer.from(rdOrgKey).toString('base64'), razeedash_tags: rdTags });
-            await decomposeFile(csConfigJson, 'ensureExists');
-          } else {
-            log.warn('Failed to find args \'--razeedash-url\' and \'--razeedash-org-key\'.. will create template \'clustersubscription\' ConfigMap and Secret if they dont exist.');
-            let csConfigJson = await readYaml('./src/resources/csConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: 'insert-rd-url-here', razeedash_org_key: Buffer.from('api-key-youorgkeyhere').toString('base64'), razeedash_tags: rdTags });
-            await decomposeFile(csConfigJson, 'ensureExists');
-          }
+          if (!rdUrl) log.warn('Failed to find arg \'--razeedash-url\'.. will create template \'clustersubscription\' ConfigMap.');
+          if (!rdOrgKey) log.warn('Failed to find arg\'--razeedash-org-key\'.. will create template \'clustersubscription\' Secret.');
+          let csConfigJson = await readYaml('./src/resources/csConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdUrl || 'insert-rd-url-here', razeedash_org_key: Buffer.from(rdOrgKey || 'api-key-youorgkeyhere').toString('base64'), razeedash_tags: rdTags });
+          await decomposeFile(csConfigJson, 'ensureExists');
         }
         let { file } = await download(resourceUris[i]);
         file = yaml.safeLoadAll(file);
