@@ -28,6 +28,8 @@
     : install clustersubscription at a specific version (Default 'latest')
 --rd-url, --razeedash-url=''
     : url that watch-keeper should post data to
+--rd-api, --razeedash-api=''
+    : api url that clustersubscription should subscribe to (default '--razeedash-url.origin')
 --rd-org-key, --razeedash-org-key=''
     : org key that watch-keeper will use to authenticate with razeedash-url
 --rd-tags, --razeedash-tags=''
