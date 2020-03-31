@@ -40,7 +40,7 @@ async function main() {
 -n, --namespace=''
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
 -s, --file-source=''
-    : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com')
+    : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
@@ -71,7 +71,7 @@ async function main() {
     return;
   }
 
-  let fileSource = typeof (argv.s || argv['file-source']) === 'string' ? argv.s || argv['file-source'] : 'https://github.com';
+  let fileSource = typeof (argv.s || argv['file-source']) === 'string' ? argv.s || argv['file-source'] : 'https://github.com/razee-io';
   if (!validUrl.isUri(fileSource)) {
     return log.error(`'${fileSource}' not a valid source url.`);
   } else if (fileSource.endsWith('/')) {
@@ -97,14 +97,14 @@ async function main() {
   let autoUpdateArray = [];
 
   let resourcesObj = {
-    'watch-keeper': { install: argv.wk || argv['watch-keeper'], uri: `${fileSource}/razee-io/watch-keeper/releases/{{install_version}}/resource.yaml` },
-    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/razee-io/ClusterSubscription/releases/{{install_version}}/resource.yaml` },
-    'remoteresource': { install: argv.rr || argv['remoteresource'], uri: `${fileSource}/razee-io/RemoteResource/releases/{{install_version}}/resource.yaml` },
-    'remoteresources3': { install: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/razee-io/RemoteResourceS3/releases/{{install_version}}/resource.yaml` },
-    'remoteresources3decrypt': { install: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/razee-io/RemoteResourceS3Decrypt/releases/{{install_version}}/resource.yaml` },
-    'mustachetemplate': { install: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/razee-io/MustacheTemplate/releases/{{install_version}}/resource.yaml` },
-    'featureflagsetld': { install: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/razee-io/FeatureFlagSetLD/releases/{{install_version}}/resource.yaml` },
-    'managedset': { install: argv.ms || argv['managedset'], uri: `${fileSource}/razee-io/ManagedSet/releases/{{install_version}}/resource.yaml` }
+    'watch-keeper': { install: argv.wk || argv['watch-keeper'], uri: `${fileSource}/watch-keeper/releases/{{install_version}}/resource.yaml` },
+    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/ClusterSubscription/releases/{{install_version}}/resource.yaml` },
+    'remoteresource': { install: argv.rr || argv['remoteresource'], uri: `${fileSource}/RemoteResource/releases/{{install_version}}/resource.yaml` },
+    'remoteresources3': { install: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/RemoteResourceS3/releases/{{install_version}}/resource.yaml` },
+    'remoteresources3decrypt': { install: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/RemoteResourceS3Decrypt/releases/{{install_version}}/resource.yaml` },
+    'mustachetemplate': { install: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/MustacheTemplate/releases/{{install_version}}/resource.yaml` },
+    'featureflagsetld': { install: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/FeatureFlagSetLD/releases/{{install_version}}/resource.yaml` },
+    'managedset': { install: argv.ms || argv['managedset'], uri: `${fileSource}/ManagedSet/releases/{{install_version}}/resource.yaml` }
   };
 
   try {
