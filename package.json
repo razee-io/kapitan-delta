@@ -8,7 +8,7 @@
     "test": "nyc --reporter=html --reporter=text mocha ",
     "test:debug": "mocha --inspect-brk",
     "check-coverage": "nyc check-coverage --statements 0 --branches 0 --functions 0 --lines 0",
-    "lint": "npx npm-run-all eslint dockerlint jsonlint yamllint markdownlint shlint",
+    "lint": "npx npm-run-all eslint dockerlint jsonlint yamllint markdownlint",
     "eslint": "npx eslint src/index.js",
     "dockerlint": "npx dockerlint Dockerfile",
     "jsonlint": "npx jsonlint --quiet build/viewTemplate.json",
