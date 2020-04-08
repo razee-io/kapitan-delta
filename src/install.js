@@ -37,6 +37,8 @@ async function main() {
     log.info(`
 -h, --help
     : help menu
+-d, --debug=''
+    : loop to keep the pod running. Does not attempt install (Default 5 minutes)
 -n, --namespace=''
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
 -s, --file-source=''
@@ -68,6 +70,28 @@ async function main() {
 -a, --autoupdate
     : will create a remoteresource that will pull and keep specified resources updated to latest (even if a version was specified). if no resources specified, will do all known resources.
     `);
+    return;
+  } else if (argv.d || argv.debug) {
+    let debugTimerMinutes = typeof (argv.d || argv['debug']) === 'number' ? argv.d || argv['debug'] : 5;
+    let debugTimerSeconds = debugTimerMinutes * 60;
+    log.info(`Debug running for ${debugTimerMinutes} minute(s).`);
+
+    let timeleft = debugTimerSeconds;
+    while (timeleft > 0) {
+      if (timeleft >= 300) {
+        log.info(`Exiting in ${(timeleft / 60).toFixed(2)}m`);
+        timeleft -= 30;
+        await new Promise(resolve => setTimeout(() => resolve(), 30000));
+      } else if (timeleft >= 60) {
+        log.info(`Exiting in ${(timeleft / 60).toFixed(2)}m`);
+        timeleft -= 10;
+        await new Promise(resolve => setTimeout(() => resolve(), 10000));
+      } else {
+        log.info(`Exiting in ${timeleft}s`);
+        timeleft -= 1;
+        await new Promise(resolve => setTimeout(() => resolve(), 1000));
+      }
+    }
     return;
   }
 
