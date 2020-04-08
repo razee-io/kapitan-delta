@@ -18,6 +18,8 @@
 ```text
 -h, --help
     : help menu
+-d, --debug=''
+    : loop to keep the pod running. Does not attempt install (Default 5 minutes)
 -n, --namespace=''
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
 -s, --file-source=''
@@ -57,6 +59,8 @@
 ```text
 -h, --help
     : help menu
+-d, --debug=''
+    : loop to keep the pod running. Does not attempt removal (Default 5 minutes)
 -n, --namespace=''
     : namespace to remove razeedeploy resources from (Default 'razeedeploy')
 --dn, --delete-namespace
