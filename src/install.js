@@ -74,16 +74,16 @@ async function main() {
   } else if (argv.d || argv.debug) {
     let debugTimerMinutes = typeof (argv.d || argv['debug']) === 'number' ? argv.d || argv['debug'] : 5;
     let debugTimerSeconds = debugTimerMinutes * 60;
-    log.info(`Debug running for ${debugTimerMinutes} minute(s).`);
+    log.info(`Debug will run for ${Math.floor(debugTimerSeconds / 60)}m ${(debugTimerSeconds % 60)}s.`);
 
     let timeleft = debugTimerSeconds;
     while (timeleft > 0) {
       if (timeleft >= 300) {
-        log.info(`Exiting in ${(timeleft / 60).toFixed(2)}m`);
+        log.info(`Exiting in ${Math.floor(timeleft / 60)}m ${(timeleft % 60)}s`);
         timeleft -= 30;
         await new Promise(resolve => setTimeout(() => resolve(), 30000));
-      } else if (timeleft >= 60) {
-        log.info(`Exiting in ${(timeleft / 60).toFixed(2)}m`);
+      } else if (timeleft > 60) {
+        log.info(`Exiting in ${Math.floor(timeleft / 60)}m ${(timeleft % 60)}s`);
         timeleft -= 10;
         await new Promise(resolve => setTimeout(() => resolve(), 10000));
       } else {
