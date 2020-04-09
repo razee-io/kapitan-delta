@@ -74,6 +74,8 @@ kind: ConfigMap
 metadata:
   name: watch-keeper-non-namespaced
   namespace: "{{ desired_namespace }}"
+data:
+  v1_node: lite
 ---
 kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
