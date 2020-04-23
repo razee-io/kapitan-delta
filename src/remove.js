@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const log = require('./bunyan-api').createLogger('create-rd');
+const log = require('./bunyan-api').createLogger('razeedeploy-remove');
 const argv = require('minimist')(process.argv.slice(2));
 const validUrl = require('valid-url');
 
