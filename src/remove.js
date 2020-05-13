@@ -28,6 +28,7 @@ const fs = require('fs-extra');
 const axios = require('axios');
 const handlebars = require('handlebars');
 
+var success = true;
 const argvNamespace = typeof (argv.n || argv.namespace) === 'string' ? argv.n || argv.namespace : 'razeedeploy';
 
 async function main() {
@@ -77,6 +78,7 @@ async function main() {
 
   let fileSource = typeof (argv.s || argv['file-source']) === 'string' ? argv.s || argv['file-source'] : 'https://github.com/razee-io';
   if (!validUrl.isUri(fileSource)) {
+    success = false;
     return log.error(`'${fileSource}' not a valid source url.`);
   } else if (fileSource.endsWith('/')) {
     fileSource = fileSource.replace(/\/+$/g, '');
@@ -132,6 +134,7 @@ async function main() {
               await crdDeleted(objectPath.get(crd, 'metadata.name'), attempts, backoff);
             }
           } catch (e) {
+            success = false;
             log.error(`Timed out trying to safely clean up crd ${objectPath.get(crd, 'metadata.name')}.. use option '-f, --force' to force clean up (note: child resources wont be cleaned up)`);
           }
         }
@@ -152,6 +155,7 @@ async function main() {
     }
 
   } catch (e) {
+    success = false;
     log.error(e);
   }
 }
@@ -187,6 +191,7 @@ async function crdDeleted(name, attempts = 5, backoffInterval = 3750) {
     log.info(`Successfully deleted ${name}`);
     return;
   } else if (--attempts <= 0) {
+    success = false;
     throw Error(`Failed to delete ${name}`);
   } else {
     log.warn(`CRD ${name} not fully removed.. re-checking in: ${backoffInterval/1000} sec, attempts remaining: ${attempts}`);
@@ -246,9 +251,11 @@ async function deleteFile(file, force = false) {
       try {
         await deleteResource(krm, file, { force: force });
       } catch (e) {
+        success = false;
         log.error(e);
       }
     } else {
+      success = false;
       log.error(`KubeResourceMeta not found: { kind: ${kind}, apiVersion: ${apiVersion}, name: ${objectPath.get(file, 'metadata.name')}, namespace: ${objectPath.get(file, 'metadata.namespace')} } ... skipping`);
     }
   }
@@ -287,4 +294,9 @@ async function deleteResource(krm, file, options = {}) {
   }
 }
 
-main().catch(log.error);
+main().then(() => {
+  success === true ? process.exit(0) : process.exit(1);
+}).catch(e => {
+  log.error(e);
+  process.exit(1);
+});

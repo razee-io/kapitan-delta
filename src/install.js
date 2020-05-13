@@ -30,6 +30,7 @@ const fs = require('fs-extra');
 const axios = require('axios');
 const handlebars = require('handlebars');
 
+var success = true;
 const argvNamespace = typeof (argv.n || argv.namespace) === 'string' ? argv.n || argv.namespace : 'razeedeploy';
 
 async function main() {
@@ -97,6 +98,7 @@ async function main() {
 
   let fileSource = typeof (argv.s || argv['file-source']) === 'string' ? argv.s || argv['file-source'] : 'https://github.com/razee-io';
   if (!validUrl.isUri(fileSource)) {
+    success = false;
     return log.error(`'${fileSource}' not a valid source url.`);
   } else if (fileSource.endsWith('/')) {
     fileSource = fileSource.replace(/\/+$/g, '');
@@ -177,6 +179,7 @@ async function main() {
         await crdRegistered('deploy.razee.io/v1alpha2', 'RemoteResource');
         await decomposeFile(autoUpdateJson);
       } catch (e) {
+        success = false;
         log.error(`${e}.. skipping autoUpdate`);
       }
     } else if (autoUpdate && !(installAll || resourcesObj.remoteresource.install)) {
@@ -184,6 +187,7 @@ async function main() {
       log.warn('RemoteResource CRD must be one of the installed resources in order to use autoUpdate. (ie. --rr -a).. Skipping autoUpdate');
     }
   } catch (e) {
+    success = false;
     log.error(e);
   }
 }
@@ -204,6 +208,7 @@ async function crdRegistered(apiVersion, kind, attempts = 5, backoffInterval = 5
     log.info(`Found ${apiVersion} ${kind}`);
     return krm;
   } else if (--attempts <= 0) {
+    success = false;
     throw Error(`Failed to find ${apiVersion} ${kind}`);
   } else {
     log.warn(`Did not find ${apiVersion} ${kind}.. attempts remaining: ${attempts}`);
@@ -253,9 +258,11 @@ async function decomposeFile(file, mode = 'replace') {
           await replace(krm, file);
         }
       } catch (e) {
+        success = false;
         log.error(e);
       }
     } else {
+      success = false;
       log.error(`KubeResourceMeta not found: { kind: ${kind}, apiVersion: ${apiVersion}, name: ${objectPath.get(file, 'metadata.name')}, namespace: ${objectPath.get(file, 'metadata.namespace')} } ... skipping`);
     }
   }
@@ -341,4 +348,9 @@ async function ensureExists(krm, file, options = {}) {
   return response;
 }
 
-main().catch(log.error);
+main().then(() => {
+  success === true ? process.exit(0) : process.exit(1);
+}).catch(e => {
+  log.error(e);
+  process.exit(1);
+});
