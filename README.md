@@ -24,6 +24,8 @@
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com')
+-ft, --file-template=''
+    : the template directly after each component, e.g. ${fileSource}/Watch-keeper/${fileTemplate}. (Default 'releases/{{install_version}}/resource.yaml')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''

@@ -104,6 +104,8 @@ async function main() {
     fileSource = fileSource.replace(/\/+$/g, '');
   }
 
+  let fileTemplate = argv['ft'] || argv['file-template'] || 'releases/{{install_version}}/resource.yaml';
+
   let rdUrl = argv['rd-url'] || argv['razeedash-url'] || false;
   if (rdUrl && !validUrl.isUri(rdUrl)) {
     log.warn(`razeedash-url '${rdUrl}' is not a valid url.`);
@@ -123,14 +125,14 @@ async function main() {
   let autoUpdateArray = [];
 
   let resourcesObj = {
-    'watch-keeper': { install: argv.wk || argv['watch-keeper'], uri: `${fileSource}/watch-keeper/releases/{{install_version}}/resource.yaml` },
-    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/ClusterSubscription/releases/{{install_version}}/resource.yaml` },
-    'remoteresource': { install: argv.rr || argv['remoteresource'], uri: `${fileSource}/RemoteResource/releases/{{install_version}}/resource.yaml` },
-    'remoteresources3': { install: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/RemoteResourceS3/releases/{{install_version}}/resource.yaml` },
-    'remoteresources3decrypt': { install: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/RemoteResourceS3Decrypt/releases/{{install_version}}/resource.yaml` },
-    'mustachetemplate': { install: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/MustacheTemplate/releases/{{install_version}}/resource.yaml` },
-    'featureflagsetld': { install: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/FeatureFlagSetLD/releases/{{install_version}}/resource.yaml` },
-    'managedset': { install: argv.ms || argv['managedset'], uri: `${fileSource}/ManagedSet/releases/{{install_version}}/resource.yaml` }
+    'watch-keeper': { install: argv.wk || argv['watch-keeper'], uri: `${fileSource}/Watch-keeper/${fileTemplate}` },
+    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/ClusterSubscription/${fileTemplate}` },
+    'remoteresource': { install: argv.rr || argv['remoteresource'], uri: `${fileSource}/RemoteResource/${fileTemplate}` },
+    'remoteresources3': { install: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/RemoteResourceS3/${fileTemplate}` },
+    'remoteresources3decrypt': { install: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/RemoteResourceS3Decrypt/${fileTemplate}` },
+    'mustachetemplate': { install: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/MustacheTemplate/${fileTemplate}` },
+    'featureflagsetld': { install: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/FeatureFlagSetLD/${fileTemplate}` },
+    'managedset': { install: argv.ms || argv['managedset'], uri: `${fileSource}/ManagedSet/${fileTemplate}` }
   };
 
   try {
