@@ -168,7 +168,7 @@ async function main() {
         file = yaml.safeLoadAll(file);
         await decomposeFile(file);
         if (autoUpdate) {
-          autoUpdateArray.push({ options: { url: resourceUris[i].uri.replace('{{install_version}}', 'latest/download') } });
+          autoUpdateArray.push({ options: { url: resourceUris[i].uri.replace('{{install_version}}',  argv['file-template'] ? 'latest' : 'latest/download') } });
         }
       }
     }
@@ -221,12 +221,16 @@ async function crdRegistered(apiVersion, kind, attempts = 5, backoffInterval = 5
 
 async function download(resourceUriObj) {
   let install_version = (typeof resourceUriObj.install === 'string' && resourceUriObj.install.toLowerCase() !== 'latest') ? `download/${resourceUriObj.install}` : 'latest/download';
+  if (argv['file-template']) {
+    // if file-template is defined, use the version directly
+    install_version = `${resourceUriObj.install}`;
+  }
   let uri = resourceUriObj.uri.replace('{{install_version}}', install_version);
   try {
     log.info(`Downloading ${uri}`);
     return { file: (await axios.get(uri)).data, uri: uri };
   } catch (e) {
-    let latestUri = resourceUriObj.uri.replace('{{install_version}}', 'latest/download');
+    let latestUri = resourceUriObj.uri.replace('{{install_version}}', argv['file-template'] ? 'latest' : 'latest/download');
     log.warn(`Failed to download ${uri}.. defaulting to ${latestUri}`);
     return { file: (await axios.get(latestUri)).data, uri: latestUri };
   }
