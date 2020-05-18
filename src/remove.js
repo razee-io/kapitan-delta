@@ -44,6 +44,8 @@ async function main() {
     : include namespace as a resource to delete (Default false)
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
+--fp, --file-path=''
+: the path directly after each component, e.g. \${fileSource}/Watch-keeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
 -t, --timeout
     : time (minutes) before failing to delete CRD (Default 5)
 -a, --attempts
@@ -84,15 +86,17 @@ async function main() {
     fileSource = fileSource.replace(/\/+$/g, '');
   }
 
+  let filePath = argv['fp'] || argv['file-path'] || 'releases/{{install_version}}/resource.yaml';
+
   let resourcesObj = {
-    'watch-keeper': { remove: argv.wk || argv['watch-keeper'], uri: `${fileSource}/watch-keeper/releases/{{install_version}}/resource.yaml` },
-    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/ClusterSubscription/releases/{{install_version}}/resource.yaml` },
-    'remoteresource': { remove: argv.rr || argv['remoteresource'], uri: `${fileSource}/RemoteResource/releases/{{install_version}}/resource.yaml` },
-    'remoteresources3': { remove: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/RemoteResourceS3/releases/{{install_version}}/resource.yaml` },
-    'remoteresources3decrypt': { remove: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/RemoteResourceS3Decrypt/releases/{{install_version}}/resource.yaml` },
-    'mustachetemplate': { remove: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/MustacheTemplate/releases/{{install_version}}/resource.yaml` },
-    'featureflagsetld': { remove: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/FeatureFlagSetLD/releases/{{install_version}}/resource.yaml` },
-    'managedset': { remove: argv.ms || argv['managedset'], uri: `${fileSource}/ManagedSet/releases/{{install_version}}/resource.yaml` }
+    'watch-keeper': { remove: argv.wk || argv['watch-keeper'], uri: `${fileSource}/Watch-keeper/${filePath}` },
+    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/ClusterSubscription/${filePath}` },
+    'remoteresource': { remove: argv.rr || argv['remoteresource'], uri: `${fileSource}/RemoteResource/${filePath}` },
+    'remoteresources3': { remove: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/RemoteResourceS3/${filePath}` },
+    'remoteresources3decrypt': { remove: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/RemoteResourceS3Decrypt/${filePath}` },
+    'mustachetemplate': { remove: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/MustacheTemplate/${filePath}` },
+    'featureflagsetld': { remove: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/FeatureFlagSetLD/${filePath}` },
+    'managedset': { remove: argv.ms || argv['managedset'], uri: `${fileSource}/ManagedSet/${filePath}` }
   };
 
   let dltNamespace = typeof (argv.dn || argv['delete-namespace']) === 'boolean' ? argv.dn || argv['delete-namespace'] : false;
@@ -202,12 +206,16 @@ async function crdDeleted(name, attempts = 5, backoffInterval = 3750) {
 
 async function download(resourceUriObj) {
   let install_version = (typeof resourceUriObj.install === 'string' && resourceUriObj.install.toLowerCase() !== 'latest') ? `download/${resourceUriObj.install}` : 'latest/download';
+  if (argv['fp'] || argv['file-path']) {
+    // if file-path is defined, use the version directly
+    install_version = `${resourceUriObj.install}`;
+  }
   let uri = resourceUriObj.uri.replace('{{install_version}}', install_version);
   try {
     log.info(`Downloading ${uri}`);
     return { file: (await axios.get(uri)).data, uri: uri };
   } catch (e) {
-    let latestUri = resourceUriObj.uri.replace('{{install_version}}', 'latest/download');
+    let latestUri = resourceUriObj.uri.replace('{{install_version}}', (argv['fp'] || argv['file-path']) ? 'latest' : 'latest/download');
     log.warn(`Failed to download ${uri}.. defaulting to ${latestUri}`);
     return { file: (await axios.get(latestUri)).data, uri: latestUri };
   }
