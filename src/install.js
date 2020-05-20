@@ -44,6 +44,8 @@ async function main() {
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
+--fp, --file-path=''
+: the path directly after each component, e.g. \${fileSource}/Watch-keeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
@@ -104,6 +106,8 @@ async function main() {
     fileSource = fileSource.replace(/\/+$/g, '');
   }
 
+  let filePath = argv['fp'] || argv['file-path'] || 'releases/{{install_version}}/resource.yaml';
+
   let rdUrl = argv['rd-url'] || argv['razeedash-url'] || false;
   if (rdUrl && !validUrl.isUri(rdUrl)) {
     log.warn(`razeedash-url '${rdUrl}' is not a valid url.`);
@@ -123,14 +127,14 @@ async function main() {
   let autoUpdateArray = [];
 
   let resourcesObj = {
-    'watch-keeper': { install: argv.wk || argv['watch-keeper'], uri: `${fileSource}/watch-keeper/releases/{{install_version}}/resource.yaml` },
-    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/ClusterSubscription/releases/{{install_version}}/resource.yaml` },
-    'remoteresource': { install: argv.rr || argv['remoteresource'], uri: `${fileSource}/RemoteResource/releases/{{install_version}}/resource.yaml` },
-    'remoteresources3': { install: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/RemoteResourceS3/releases/{{install_version}}/resource.yaml` },
-    'remoteresources3decrypt': { install: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/RemoteResourceS3Decrypt/releases/{{install_version}}/resource.yaml` },
-    'mustachetemplate': { install: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/MustacheTemplate/releases/{{install_version}}/resource.yaml` },
-    'featureflagsetld': { install: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/FeatureFlagSetLD/releases/{{install_version}}/resource.yaml` },
-    'managedset': { install: argv.ms || argv['managedset'], uri: `${fileSource}/ManagedSet/releases/{{install_version}}/resource.yaml` }
+    'watch-keeper': { install: argv.wk || argv['watch-keeper'], uri: `${fileSource}/Watch-keeper/${filePath}` },
+    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/ClusterSubscription/${filePath}` },
+    'remoteresource': { install: argv.rr || argv['remoteresource'], uri: `${fileSource}/RemoteResource/${filePath}` },
+    'remoteresources3': { install: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/RemoteResourceS3/${filePath}` },
+    'remoteresources3decrypt': { install: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/RemoteResourceS3Decrypt/${filePath}` },
+    'mustachetemplate': { install: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/MustacheTemplate/${filePath}` },
+    'featureflagsetld': { install: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/FeatureFlagSetLD/${filePath}` },
+    'managedset': { install: argv.ms || argv['managedset'], uri: `${fileSource}/ManagedSet/${filePath}` }
   };
 
   try {
@@ -166,7 +170,7 @@ async function main() {
         file = yaml.safeLoadAll(file);
         await decomposeFile(file);
         if (autoUpdate) {
-          autoUpdateArray.push({ options: { url: resourceUris[i].uri.replace('{{install_version}}', 'latest/download') } });
+          autoUpdateArray.push({ options: { url: resourceUris[i].uri.replace('{{install_version}}',  (argv['fp'] || argv['file-path']) ? 'latest' : 'latest/download') } });
         }
       }
     }
@@ -219,12 +223,16 @@ async function crdRegistered(apiVersion, kind, attempts = 5, backoffInterval = 5
 
 async function download(resourceUriObj) {
   let install_version = (typeof resourceUriObj.install === 'string' && resourceUriObj.install.toLowerCase() !== 'latest') ? `download/${resourceUriObj.install}` : 'latest/download';
+  if (argv['fp'] || argv['file-path']) {
+    // if file-path is defined, use the version directly
+    install_version = `${resourceUriObj.install}`;
+  }
   let uri = resourceUriObj.uri.replace('{{install_version}}', install_version);
   try {
     log.info(`Downloading ${uri}`);
     return { file: (await axios.get(uri)).data, uri: uri };
   } catch (e) {
-    let latestUri = resourceUriObj.uri.replace('{{install_version}}', 'latest/download');
+    let latestUri = resourceUriObj.uri.replace('{{install_version}}', (argv['fp'] || argv['file-path']) ? 'latest' : 'latest/download');
     log.warn(`Failed to download ${uri}.. defaulting to ${latestUri}`);
     return { file: (await axios.get(latestUri)).data, uri: latestUri };
   }

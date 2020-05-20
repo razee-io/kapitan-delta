@@ -24,6 +24,8 @@
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com')
+--fp, --file-path=''
+    : the path directly after each component, e.g. ${fileSource}/Watch-keeper/${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
@@ -67,6 +69,8 @@
     : include namespace as a resource to delete (Default false)
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com')
+--fp, --file-path=''
+    : the path directly after each component, e.g. ${fileSource}/Watch-keeper/${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
 -t, --timeout
     : time (minutes) before failing to delete CRD (Default 5)
 -a, --attempts
