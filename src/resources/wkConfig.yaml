@@ -61,6 +61,9 @@ metadata:
     app: watch-keeper
 data:
   RAZEEDASH_URL: "{{{ razeedash_url }}}"
+{{#razeedash_cluster_id}}
+  CLUSTER_ID_OVERRIDE: "{{{ id }}}"
+{{/razeedash_cluster_id}}
   START_DELAY_MAX: "0"
 ---
 apiVersion: v1
@@ -90,6 +93,19 @@ metadata:
     app: watch-keeper
 data:
   v1_node: lite
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: watch-keeper-cluster-metadata
+  namespace: "{{ desired_namespace }}"
+  labels:
+    razee/cluster-metadata: 'true'
+    razee/watch-resource: lite
+data:
+{{#list razeedash_cluster_metadata}}
+  {{name}}: "{{value}}"
+{{/list}}
 ---
 kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
