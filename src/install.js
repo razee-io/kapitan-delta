@@ -34,10 +34,8 @@ var success = true;
 const argvNamespace = typeof (argv.n || argv.namespace) === 'string' ? argv.n || argv.namespace : 'razeedeploy';
 
 handlebars.registerHelper('list', function(items, options) {
-  log.info(`in list list handler ${JSON.stringify(items)}`);
   var out = '';
   for(let i = 0; i < items.length; i++){
-    log.info(`list item ${JSON.stringify(items[i])}`);
     out = out + options.fn(items[i]);
   }
   log.info(`list output is ${out}`);
@@ -70,9 +68,9 @@ async function main() {
 --rd-tags, --razeedash-tags=''
     : one or more comma-separated subscription tags which were defined in Razeedash
 --rd-cluster-id, --razeedash-cluster-id=''
-    : razee cluster id assigned
---rd-cluster-metadata, --razeedash-cluster-metadata=''
-    : razee cluster metadata to be stored into watch-keeper-cluster-metadata config-map
+    : razee cluster id from API server to be stored into watch-keeper-config config-map
+--rd-cluster-metadata64, --razeedash-cluster-metadata64=''
+    : razee cluster metadata JSON base64 encoded string, <key, value> pairs to be stored into watch-keeper-cluster-metadata config-map
 --rr, --remoteresource=''
     : install remoteresource at a specific version (Default 'latest')
 --rrs3, --remoteresources3=''
@@ -152,7 +150,7 @@ async function main() {
         }
         rdclusterMetadata.push({name, value});
       }
-      console.log(`rdclusterMetadata is ${JSON.stringify(rdclusterMetadata)}`);
+      log.debug(`rdclusterMetadata is ${JSON.stringify(rdclusterMetadata)}`);
     }
   } catch ( exception ) {
     log.warn(`can not decode or parse json object from razeedash-cluster-metadata ${base64String}`);
@@ -190,12 +188,12 @@ async function main() {
         if (resources[i] === 'watch-keeper') {
           if (!rdUrl) log.warn('Failed to find arg \'--razeedash-url\'.. will create template \'watch-keeper-config\'.');
           if (!rdOrgKey) log.warn('Failed to find arg\'--razeedash-org-key\'.. will create template \'watch-keeper-secret\'.');
-          log.info(`razeedash_cluster_id is set to ${rdclusterId}`);
+          log.info(`cluster id and metadata are set to ${rdclusterId}, ${JSON.stringify(rdclusterMetadata)}`);
           let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', 
             { desired_namespace: argvNamespace, 
               razeedash_url: rdUrl.href || 'insert-rd-url-here', 
               razeedash_org_key: Buffer.from(rdOrgKey || 'api-key-youorgkeyhere').toString('base64'),
-              razeedash_cluster_id: { id: rdclusterId },
+              razeedash_cluster_id: rdclusterId ? { id: rdclusterId } : rdclusterId,
               razeedash_cluster_metadata: rdclusterMetadata,
             });
           await decomposeFile(wkConfigJson, 'ensureExists');
