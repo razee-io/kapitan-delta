@@ -68,7 +68,7 @@ async function main() {
 --rd-tags, --razeedash-tags=''
     : one or more comma-separated subscription tags which were defined in Razeedash
 --rd-cluster-id, --razeedash-cluster-id=''
-    : razee cluster id from API server to be stored into watch-keeper-config config-map
+    : cluster id to be stored into watch-keeper-config ConfigMap and used as the cluster id in RazeeDash instead of namespace.metadata.uid.
 --rd-cluster-metadata64, --razeedash-cluster-metadata64=''
     : razee cluster metadata JSON base64 encoded string, <key, value> pairs to be stored into watch-keeper-cluster-metadata config-map
 --rr, --remoteresource=''
