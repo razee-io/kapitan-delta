@@ -187,7 +187,6 @@ async function main() {
         if (resources[i] === 'watch-keeper') {
           if (!rdUrl) log.warn('Failed to find arg \'--razeedash-url\'.. will create template \'watch-keeper-config\'.');
           if (!rdOrgKey) log.warn('Failed to find arg\'--razeedash-org-key\'.. will create template \'watch-keeper-secret\'.');
-          log.info(`cluster id and metadata are set to ${rdclusterId}, ${JSON.stringify(rdclusterMetadata)}`);
           let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', 
             { desired_namespace: argvNamespace, 
               razeedash_url: rdUrl.href || 'insert-rd-url-here', 
