@@ -191,7 +191,7 @@ async function main() {
             { desired_namespace: argvNamespace, 
               razeedash_url: rdUrl.href || 'insert-rd-url-here', 
               razeedash_org_key: Buffer.from(rdOrgKey || 'api-key-youorgkeyhere').toString('base64'),
-              razeedash_cluster_id: rdclusterId ? { id: rdclusterId } : rdclusterId,
+              razeedash_cluster_id: rdclusterId ? { id: rdclusterId } : {},
               razeedash_cluster_metadata: rdclusterMetadata,
             });
           await decomposeFile(wkConfigJson, 'ensureExists');
