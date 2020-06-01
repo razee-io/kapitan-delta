@@ -139,7 +139,6 @@ async function main() {
   let rdclusterMetadata = [];
   const base64String = argv['rd-cluster-metadata64'] || argv['razeedash-cluster-metadata64'];
   try {
-    const base64String = argv['rd-cluster-metadata64'] || argv['razeedash-cluster-metadata64'];
     if (base64String) {
       const buff = new Buffer(base64String, 'base64');
       const valuesString =  buff.toString('utf8');
