@@ -70,7 +70,7 @@ async function main() {
 --rd-cluster-id, --razeedash-cluster-id=''
     : cluster id to be stored into watch-keeper-config ConfigMap and used as the cluster id in RazeeDash instead of namespace.metadata.uid.
 --rd-cluster-metadata64, --razeedash-cluster-metadata64=''
-    : razee cluster metadata JSON base64 encoded string, <key, value> pairs to be stored into watch-keeper-cluster-metadata config-map
+    :  base64 encoded JSON object of cluster metadata entries {key: value, ...}. To be stored into watch-keeper-cluster-metadata ConfigMap and sent to RazeeDash.
 --rr, --remoteresource=''
     : install remoteresource at a specific version (Default 'latest')
 --rrs3, --remoteresources3=''
