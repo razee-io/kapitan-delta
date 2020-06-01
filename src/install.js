@@ -33,15 +33,6 @@ const handlebars = require('handlebars');
 var success = true;
 const argvNamespace = typeof (argv.n || argv.namespace) === 'string' ? argv.n || argv.namespace : 'razeedeploy';
 
-handlebars.registerHelper('list', function(items, options) {
-  var out = '';
-  for(let i = 0; i < items.length; i++){
-    out = out + options.fn(items[i]);
-  }
-  log.info(`list output is ${out}`);
-  return out;
-});
-
 async function main() {
   if (argv.h || argv.help) {
     log.info(`
@@ -54,7 +45,7 @@ async function main() {
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
 --fp, --file-path=''
-: the path directly after each component, e.g. \${fileSource}/Watch-keeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
+    : the path directly after each component, e.g. \${fileSource}/Watch-keeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
@@ -68,9 +59,9 @@ async function main() {
 --rd-tags, --razeedash-tags=''
     : one or more comma-separated subscription tags which were defined in Razeedash
 --rd-cluster-id, --razeedash-cluster-id=''
-    : cluster id to be stored into watch-keeper-config ConfigMap and used as the cluster id in RazeeDash instead of namespace.metadata.uid.
+    : cluster id to be stored into watch-keeper-config ConfigMap and used as the cluster id in RazeeDash instead of namespace.metadata.uid
 --rd-cluster-metadata64, --razeedash-cluster-metadata64=''
-    :  base64 encoded JSON object of cluster metadata entries {key: value, ...}. To be stored into watch-keeper-cluster-metadata ConfigMap and sent to RazeeDash.
+    : base64 encoded JSON object of cluster metadata entries {key: value, ...}. To be stored into watch-keeper-cluster-metadata ConfigMap and sent to RazeeDash
 --rr, --remoteresource=''
     : install remoteresource at a specific version (Default 'latest')
 --rrs3, --remoteresources3=''
@@ -191,7 +182,7 @@ async function main() {
             { desired_namespace: argvNamespace, 
               razeedash_url: rdUrl.href || 'insert-rd-url-here', 
               razeedash_org_key: Buffer.from(rdOrgKey || 'api-key-youorgkeyhere').toString('base64'),
-              razeedash_cluster_id: rdclusterId ? { id: rdclusterId } : {},
+              razeedash_cluster_id: rdclusterId ? { id: rdclusterId } : false, // have set to false, {} puts any "" string value
               razeedash_cluster_metadata: rdclusterMetadata,
             });
           await decomposeFile(wkConfigJson, 'ensureExists');

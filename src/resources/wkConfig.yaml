@@ -103,9 +103,9 @@ metadata:
     razee/cluster-metadata: 'true'
     razee/watch-resource: lite
 data:
-{{#list razeedash_cluster_metadata}}
+{{#razeedash_cluster_metadata}}
   {{name}}: "{{value}}"
-{{/list}}
+{{/razeedash_cluster_metadata}}
 ---
 kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
