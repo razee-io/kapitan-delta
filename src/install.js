@@ -45,7 +45,7 @@ async function main() {
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
 --fp, --file-path=''
-: the path directly after each component, e.g. \${fileSource}/Watch-keeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
+    : the path directly after each component, e.g. \${fileSource}/Watch-keeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
@@ -58,6 +58,10 @@ async function main() {
     : org key that watch-keeper will use to authenticate with razeedash-url
 --rd-tags, --razeedash-tags=''
     : one or more comma-separated subscription tags which were defined in Razeedash
+--rd-cluster-id, --razeedash-cluster-id=''
+    : cluster id to be stored into watch-keeper-config ConfigMap and used as the cluster id in RazeeDash instead of namespace.metadata.uid
+--rd-cluster-metadata64, --razeedash-cluster-metadata64=''
+    : base64 encoded JSON object of cluster metadata entries {key: value, ...}. To be stored into watch-keeper-cluster-metadata ConfigMap and sent to RazeeDash
 --rr, --remoteresource=''
     : install remoteresource at a specific version (Default 'latest')
 --rrs3, --remoteresources3=''
@@ -122,6 +126,26 @@ async function main() {
   }
   let rdOrgKey = argv['rd-org-key'] || argv['razeedash-org-key'] || false;
   let rdTags = argv['rd-tags'] || argv['razeedash-tags'] || '';
+  let rdclusterId = argv['rd-cluster-id'] || argv['razeedash-cluster-id'] || false;
+  let rdclusterMetadata = [];
+  const base64String = argv['rd-cluster-metadata64'] || argv['razeedash-cluster-metadata64'];
+  try {
+    if (base64String) {
+      const buff = new Buffer(base64String, 'base64');
+      const valuesString =  buff.toString('utf8');
+      const values = JSON.parse(valuesString);
+      for (var [name, value] of Object.entries(values)) {
+        if (typeof value === 'object') {
+          value = JSON.stringify(value);
+        }
+        rdclusterMetadata.push({name, value});
+      }
+      log.debug(`rdclusterMetadata is ${JSON.stringify(rdclusterMetadata)}`);
+    }
+  } catch ( exception ) {
+    log.warn(`can not decode or parse json object from razeedash-cluster-metadata ${base64String}`);
+  }
+
 
   let autoUpdate = argv.a || argv.autoupdate || false;
   let autoUpdateArray = [];
@@ -154,7 +178,13 @@ async function main() {
         if (resources[i] === 'watch-keeper') {
           if (!rdUrl) log.warn('Failed to find arg \'--razeedash-url\'.. will create template \'watch-keeper-config\'.');
           if (!rdOrgKey) log.warn('Failed to find arg\'--razeedash-org-key\'.. will create template \'watch-keeper-secret\'.');
-          let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdUrl.href || 'insert-rd-url-here', razeedash_org_key: Buffer.from(rdOrgKey || 'api-key-youorgkeyhere').toString('base64') });
+          let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', 
+            { desired_namespace: argvNamespace, 
+              razeedash_url: rdUrl.href || 'insert-rd-url-here', 
+              razeedash_org_key: Buffer.from(rdOrgKey || 'api-key-youorgkeyhere').toString('base64'),
+              razeedash_cluster_id: rdclusterId ? { id: rdclusterId } : false, // have set to false, {} puts any "" string value
+              razeedash_cluster_metadata: rdclusterMetadata,
+            });
           await decomposeFile(wkConfigJson, 'ensureExists');
         } else if (resources[i] === 'clustersubscription') {
           if (!(installAll || resourcesObj.remoteresource.install)) {
