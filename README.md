@@ -25,15 +25,15 @@
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
 --fp, --file-path=''
-    : the path directly after each component, e.g. \${fileSource}/Watch-keeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
+    : the path directly after each component, e.g. ${fileSource}/Watch-keeper/${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
     : install clustersubscription at a specific version (Default 'latest')
 --rd-url, --razeedash-url=''
-    : url that watch-keeper should post data to (Default '\${--razeedash-api}/api/v2' if provided)
+    : url that watch-keeper should post data to (Default '${--razeedash-api}/api/v2' if provided)
 --rd-api, --razeedash-api=''
-    : razee api baseUrl (Default '\${--razeedash-url}.origin' if provided)
+    : razee api baseUrl (Default '${--razeedash-url}.origin' if provided)
 --rd-org-key, --razeedash-org-key=''
     : org key used to authenticate with razee
 --rd-cluster-id, --razeedash-cluster-id=''
