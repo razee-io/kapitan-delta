@@ -60,21 +60,10 @@ metadata:
   labels:
     app: watch-keeper
 data:
-  RAZEEDASH_URL: "{{{ razeedash_url }}}"
-{{#razeedash_cluster_id}}
-  CLUSTER_ID_OVERRIDE: "{{{ id }}}"
-{{/razeedash_cluster_id}}
+{{#razeedash_url}}
+  RAZEEDASH_URL: "{{{ url }}}"
+{{/razeedash_url}}
   START_DELAY_MAX: "0"
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: watch-keeper-secret
-  namespace: "{{ desired_namespace }}"
-  labels:
-    app: watch-keeper
-data:
-  RAZEEDASH_ORG_KEY: "{{{ razeedash_org_key }}}"
 ---
 apiVersion: v1
 kind: ConfigMap

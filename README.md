@@ -23,23 +23,21 @@
 -n, --namespace=''
     : namespace to populate razeedeploy resources into (Default 'razeedeploy')
 -s, --file-source=''
-    : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com')
+    : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
 --fp, --file-path=''
-    : the path directly after each component, e.g. ${fileSource}/Watch-keeper/${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
+    : the path directly after each component, e.g. \${fileSource}/Watch-keeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
 --wk, --watch-keeper=''
     : install watch-keeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
     : install clustersubscription at a specific version (Default 'latest')
 --rd-url, --razeedash-url=''
-    : url that watch-keeper should post data to
+    : url that watch-keeper should post data to (Default '\${--razeedash-api}/api/v2' if provided)
 --rd-api, --razeedash-api=''
-    : api url that clustersubscription should subscribe to (default '--razeedash-url.origin')
+    : razee api baseUrl (Default '\${--razeedash-url}.origin' if provided)
 --rd-org-key, --razeedash-org-key=''
-    : org key that watch-keeper will use to authenticate with razeedash-url
---rd-tags, --razeedash-tags=''
-    : one or more comma-separated subscription tags which were defined in Razeedash
+    : org key used to authenticate with razee
 --rd-cluster-id, --razeedash-cluster-id=''
-    : cluster id to be stored into watch-keeper-config ConfigMap and used as the cluster id in RazeeDash instead of namespace.metadata.uid
+    : cluster id to be used as the cluster id in RazeeDash (Default 'namespace.metadata.uid')
 --rd-cluster-metadata64, --razeedash-cluster-metadata64=''
     : base64 encoded JSON object of cluster metadata entries {key: value, ...}. To be stored into watch-keeper-cluster-metadata ConfigMap and sent to RazeeDash
 --rr, --remoteresource=''
@@ -99,10 +97,11 @@ from scratch, you must first delete these resources:
   - ClusterRole: `cluster-reader`
   - ClusterRoleBinding: `watch-keeper-rb`
   - ConfigMap: `watch-keeper-config`
-  - Secret: `watch-keeper-secret`
+  - ConfigMap: `razee-identity`
+  - Secret: `razee-identity`
   - ConfigMap: `watch-keeper-limit-poll`
   - ConfigMap: `watch-keeper-non-namespaced`
   - NetworkPolicy: `watch-keeper-deny-ingress`
 - ClusterSubscription Config: (only when installing clustersubscription)
-  - ConfigMap: `clustersubscription`
-  - Secret: `clustersubscription`
+  - ConfigMap: `razee-identity`
+  - Secret: `razee-identity`

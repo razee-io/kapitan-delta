@@ -51,15 +51,13 @@ async function main() {
 --cs, --clustersubscription=''
     : install clustersubscription at a specific version (Default 'latest')
 --rd-url, --razeedash-url=''
-    : url that watch-keeper should post data to
+    : url that watch-keeper should post data to (Default '\${--razeedash-api}/api/v2' if provided)
 --rd-api, --razeedash-api=''
-    : api url that clustersubscription should subscribe to (default '--razeedash-url.origin')
+    : razee api baseUrl (Default '\${--razeedash-url}.origin' if provided)
 --rd-org-key, --razeedash-org-key=''
-    : org key that watch-keeper will use to authenticate with razeedash-url
---rd-tags, --razeedash-tags=''
-    : one or more comma-separated subscription tags which were defined in Razeedash
+    : org key used to authenticate with razee
 --rd-cluster-id, --razeedash-cluster-id=''
-    : cluster id to be stored into watch-keeper-config ConfigMap and used as the cluster id in RazeeDash instead of namespace.metadata.uid
+    : cluster id to be used as the cluster id in RazeeDash (Default 'namespace.metadata.uid')
 --rd-cluster-metadata64, --razeedash-cluster-metadata64=''
     : base64 encoded JSON object of cluster metadata entries {key: value, ...}. To be stored into watch-keeper-cluster-metadata ConfigMap and sent to RazeeDash
 --rr, --remoteresource=''
@@ -125,24 +123,23 @@ async function main() {
     rdApi = new URL(rdApi);
   }
   let rdOrgKey = argv['rd-org-key'] || argv['razeedash-org-key'] || false;
-  let rdTags = argv['rd-tags'] || argv['razeedash-tags'] || '';
   let rdclusterId = argv['rd-cluster-id'] || argv['razeedash-cluster-id'] || false;
   let rdclusterMetadata = [];
   const base64String = argv['rd-cluster-metadata64'] || argv['razeedash-cluster-metadata64'];
   try {
     if (base64String) {
       const buff = new Buffer(base64String, 'base64');
-      const valuesString =  buff.toString('utf8');
+      const valuesString = buff.toString('utf8');
       const values = JSON.parse(valuesString);
       for (var [name, value] of Object.entries(values)) {
         if (typeof value === 'object') {
           value = JSON.stringify(value);
         }
-        rdclusterMetadata.push({name, value});
+        rdclusterMetadata.push({ name, value });
       }
       log.debug(`rdclusterMetadata is ${JSON.stringify(rdclusterMetadata)}`);
     }
-  } catch ( exception ) {
+  } catch (exception) {
     log.warn(`can not decode or parse json object from razeedash-cluster-metadata ${base64String}`);
   }
 
@@ -172,35 +169,39 @@ async function main() {
       return objectPath.get(currentValue, 'install') === undefined ? shouldInstallAll : false;
     }, true);
 
+    if (installAll || resourcesObj['clustersubscription'].install || resourcesObj['watch-keeper'].install) {
+      if (!rdApi && !rdUrl) log.warn('Failed to find arg \'--razeedash-api\' or \'--razeedash-url\'.. will create template \'razee-identity\' config.');
+      if (!rdOrgKey) log.warn('Failed to find arg\'--razeedash-org-key\'.. will create template \'razee-identity\' secret.');
+      let ridConfigJson = await readYaml('./src/resources/ridConfig.yaml', {
+        desired_namespace: argvNamespace,
+        razeedash_api: rdApi.href || rdUrl.origin || 'insert-rd-url-here',
+        razeedash_cluster_id: rdclusterId ? { id: rdclusterId } : false, // have set to false, {} puts any "" string value
+        razeedash_org_key: Buffer.from(rdOrgKey || 'api-key-youorgkeyhere').toString('base64')
+      });
+      await decomposeFile(ridConfigJson, 'ensureExists');
+    }
+
     for (var i = 0; i < resourceUris.length; i++) {
       if (installAll || resourceUris[i].install) {
         log.info(`=========== Installing ${resources[i]}:${resourceUris[i].install || 'Install All Resources'} ===========`);
         if (resources[i] === 'watch-keeper') {
-          if (!rdUrl) log.warn('Failed to find arg \'--razeedash-url\'.. will create template \'watch-keeper-config\'.');
-          if (!rdOrgKey) log.warn('Failed to find arg\'--razeedash-org-key\'.. will create template \'watch-keeper-secret\'.');
-          let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', 
-            { desired_namespace: argvNamespace, 
-              razeedash_url: rdUrl.href || 'insert-rd-url-here', 
-              razeedash_org_key: Buffer.from(rdOrgKey || 'api-key-youorgkeyhere').toString('base64'),
-              razeedash_cluster_id: rdclusterId ? { id: rdclusterId } : false, // have set to false, {} puts any "" string value
-              razeedash_cluster_metadata: rdclusterMetadata,
-            });
+          let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', {
+            desired_namespace: argvNamespace,
+            razeedash_url: rdUrl.href ? { url: rdUrl.href } : false,
+            razeedash_cluster_metadata: rdclusterMetadata,
+          });
           await decomposeFile(wkConfigJson, 'ensureExists');
         } else if (resources[i] === 'clustersubscription') {
           if (!(installAll || resourcesObj.remoteresource.install)) {
             log.warn('RemoteResource CRD must be one of the installed resources in order to use ClusterSubscription. (ie. --rr --cs).. Skipping ClusterSubscription');
             continue;
           }
-          if (!rdApi && !rdUrl) log.warn('Failed to find arg \'--razeedash-api\' or \'--razeedash-url\'.. will create template \'clustersubscription\' ConfigMap.');
-          if (!rdOrgKey) log.warn('Failed to find arg\'--razeedash-org-key\'.. will create template \'clustersubscription\' Secret.');
-          let csConfigJson = await readYaml('./src/resources/csConfig.yaml', { desired_namespace: argvNamespace, razeedash_url: rdApi.href || rdUrl.origin || 'insert-rd-url-here', razeedash_org_key: Buffer.from(rdOrgKey || 'api-key-youorgkeyhere').toString('base64'), razeedash_tags: rdTags });
-          await decomposeFile(csConfigJson, 'ensureExists');
         }
         let { file } = await download(resourceUris[i]);
         file = yaml.safeLoadAll(file);
         await decomposeFile(file);
         if (autoUpdate) {
-          autoUpdateArray.push({ options: { url: resourceUris[i].uri.replace('{{install_version}}',  (argv['fp'] || argv['file-path']) ? 'latest' : 'latest/download') } });
+          autoUpdateArray.push({ options: { url: resourceUris[i].uri.replace('{{install_version}}', (argv['fp'] || argv['file-path']) ? 'latest' : 'latest/download') } });
         }
       }
     }
