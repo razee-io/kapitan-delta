@@ -90,7 +90,7 @@ async function main() {
 
   let resourcesObj = {
     'watch-keeper': { remove: argv.wk || argv['watch-keeper'], uri: `${fileSource}/Watch-keeper/${filePath}` },
-    'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/ClusterSubscription/${filePath}` },
+    'clustersubscription': { remove: argv.cs || argv['clustersubscription'], uri: `${fileSource}/ClusterSubscription/${filePath}` },
     'remoteresource': { remove: argv.rr || argv['remoteresource'], uri: `${fileSource}/RemoteResource/${filePath}` },
     'remoteresources3': { remove: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/RemoteResourceS3/${filePath}` },
     'remoteresources3decrypt': { remove: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/RemoteResourceS3Decrypt/${filePath}` },
@@ -120,9 +120,6 @@ async function main() {
         if (resources[i] === 'watch-keeper') {
           let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace });
           await deleteFile(wkConfigJson);
-        } else if (resources[i] === 'clustersubscription') {
-          let csConfigJson = await readYaml('./src/resources/csConfig.yaml', { desired_namespace: argvNamespace });
-          await deleteFile(csConfigJson);
         }
         let { file } = await download(resourceUris[i]);
         file = yaml.safeLoadAll(file);
@@ -156,6 +153,11 @@ async function main() {
       } else {
         log.info(`Skipping namespace deletion: --namespace='${argvNamespace}' --delete-namespace='${dltNamespace}'`);
       }
+    }
+    if (removeAll || (resourcesObj['clustersubscription'].remove && resourcesObj['watch-keeper'].remove)) {
+      // if watch-keeper and clustersubscription are removed in seperate runs, ridConfig will be left on the cluster
+      let ridConfigJson = await readYaml('./src/resources/ridConfig.yaml', { desired_namespace: argvNamespace });
+      await deleteFile(ridConfigJson);
     }
 
   } catch (e) {
