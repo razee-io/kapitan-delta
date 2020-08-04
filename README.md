@@ -94,7 +94,7 @@ from scratch, you must first delete these resources:
   - ClusterRoleBinding: `razeedeploy-rb`
 - Watch-Keeper Config: (only when installing watch-keeper)
   - ServiceAccount: `watch-keeper-sa`
-  - ClusterRole: `cluster-reader`
+  - ClusterRole: `razee-cluster-reader`
   - ClusterRoleBinding: `watch-keeper-rb`
   - ConfigMap: `watch-keeper-config`
   - ConfigMap: `razee-identity`
