@@ -94,7 +94,7 @@ from scratch, you must first delete these resources:
   - ServiceAccount: `razeedeploy-sa`
   - ClusterRole: `razeedeploy-admin-cr`
   - ClusterRoleBinding: `razeedeploy-rb`
-- Watch-Keeper Config: (only when installing watch-keeper)
+- WatchKeeper Config: (only when installing watchkeeper)
   - ServiceAccount: `watch-keeper-sa`
   - ClusterRole: `razee-cluster-reader`
   - ClusterRoleBinding: `watch-keeper-rb`
