@@ -45,7 +45,7 @@ async function main() {
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
 --fp, --file-path=''
-: the path directly after each component, e.g. \${fileSource}/Watch-keeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
+: the path directly after each component, e.g. \${fileSource}/WatchKeeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
 -t, --timeout
     : time (minutes) before failing to delete CRD (Default 5)
 -a, --attempts
@@ -89,13 +89,14 @@ async function main() {
   let filePath = argv['fp'] || argv['file-path'] || 'releases/{{install_version}}/resource.yaml';
 
   let resourcesObj = {
-    'watch-keeper': { remove: argv.wk || argv['watch-keeper'], uri: `${fileSource}/Watch-keeper/${filePath}` },
+    'watchkeeper': { remove: argv.wk || argv['watchkeeper'] || argv['watch-keeper'], uri: `${fileSource}/WatchKeeper/${filePath}` },
     'clustersubscription': { remove: argv.cs || argv['clustersubscription'], uri: `${fileSource}/ClusterSubscription/${filePath}` },
     'remoteresource': { remove: argv.rr || argv['remoteresource'], uri: `${fileSource}/RemoteResource/${filePath}` },
     'remoteresources3': { remove: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/RemoteResourceS3/${filePath}` },
     'remoteresources3decrypt': { remove: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/RemoteResourceS3Decrypt/${filePath}` },
     'mustachetemplate': { remove: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/MustacheTemplate/${filePath}` },
     'featureflagsetld': { remove: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/FeatureFlagSetLD/${filePath}` },
+    'encryptedresource': { remove: argv.er || argv['encryptedresource'], uri: `${fileSource}/EncryptedResource/${filePath}` },
     'managedset': { remove: argv.ms || argv['managedset'], uri: `${fileSource}/ManagedSet/${filePath}` }
   };
 
@@ -117,7 +118,7 @@ async function main() {
     for (let i = 0; i < resourceUris.length; i++) {
       if (removeAll || resourceUris[i].remove) {
         log.info(`=========== Removing ${resources[i]}:${resourceUris[i].remove || 'Remove All Resources'} ===========`);
-        if (resources[i] === 'watch-keeper') {
+        if (resources[i] === 'watchkeeper') {
           let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', { desired_namespace: argvNamespace });
           await deleteFile(wkConfigJson);
         }
