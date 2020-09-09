@@ -25,15 +25,15 @@
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
 --fp, --file-path=''
-    : the path directly after each component, e.g. ${fileSource}/Watch-keeper/${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
---wk, --watch-keeper=''
-    : install watch-keeper at a specific version (Default 'latest')
+    : the path directly after each component, e.g. \${fileSource}/WatchKeeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
+--wk, --watchkeeper='', --watch-keeper=''
+    : install watchkeeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
     : install clustersubscription at a specific version (Default 'latest')
 --rd-url, --razeedash-url=''
-    : url that watch-keeper should post data to (Default '${--razeedash-api}/api/v2' if provided)
+    : url that watchkeeper should post data to (Default '\${--razeedash-api}/api/v2' if provided)
 --rd-api, --razeedash-api=''
-    : razee api baseUrl (Default '${--razeedash-url}.origin' if provided)
+    : razee api baseUrl (Default '\${--razeedash-url}.origin' if provided)
 --rd-org-key, --razeedash-org-key=''
     : org key used to authenticate with razee
 --rd-cluster-id, --razeedash-cluster-id=''
@@ -50,6 +50,8 @@
     : install mustachetemplate at a specific version (Default 'latest')
 --ffsld, --featureflagsetld=''
     : install featureflagsetld at a specific version (Default 'latest')
+--er, --encryptedresource=''
+    : install encryptedresource at a specific version (Default 'latest')
 --ms, --managedset=''
     : install managedset at a specific version (Default 'latest')
 -a, --autoupdate
@@ -72,7 +74,7 @@
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com')
 --fp, --file-path=''
-    : the path directly after each component, e.g. ${fileSource}/Watch-keeper/${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
+    : the path directly after each component, e.g. ${fileSource}/WatchKeeper/${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
 -t, --timeout
     : time (minutes) before failing to delete CRD (Default 5)
 -a, --attempts
@@ -92,7 +94,7 @@ from scratch, you must first delete these resources:
   - ServiceAccount: `razeedeploy-sa`
   - ClusterRole: `razeedeploy-admin-cr`
   - ClusterRoleBinding: `razeedeploy-rb`
-- Watch-Keeper Config: (only when installing watch-keeper)
+- WatchKeeper Config: (only when installing watchkeeper)
   - ServiceAccount: `watch-keeper-sa`
   - ClusterRole: `razee-cluster-reader`
   - ClusterRoleBinding: `watch-keeper-rb`

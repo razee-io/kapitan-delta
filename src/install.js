@@ -45,13 +45,13 @@ async function main() {
 -s, --file-source=''
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
 --fp, --file-path=''
-    : the path directly after each component, e.g. \${fileSource}/Watch-keeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
---wk, --watch-keeper=''
-    : install watch-keeper at a specific version (Default 'latest')
+    : the path directly after each component, e.g. \${fileSource}/WatchKeeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
+--wk, --watchkeeper='', --watch-keeper=''
+    : install watchkeeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
     : install clustersubscription at a specific version (Default 'latest')
 --rd-url, --razeedash-url=''
-    : url that watch-keeper should post data to (Default '\${--razeedash-api}/api/v2' if provided)
+    : url that watchkeeper should post data to (Default '\${--razeedash-api}/api/v2' if provided)
 --rd-api, --razeedash-api=''
     : razee api baseUrl (Default '\${--razeedash-url}.origin' if provided)
 --rd-org-key, --razeedash-org-key=''
@@ -70,6 +70,8 @@ async function main() {
     : install mustachetemplate at a specific version (Default 'latest')
 --ffsld, --featureflagsetld=''
     : install featureflagsetld at a specific version (Default 'latest')
+--er, --encryptedresource=''
+    : install encryptedresource at a specific version (Default 'latest')
 --ms, --managedset=''
     : install managedset at a specific version (Default 'latest')
 -a, --autoupdate
@@ -148,13 +150,14 @@ async function main() {
   let autoUpdateArray = [];
 
   let resourcesObj = {
-    'watch-keeper': { install: argv.wk || argv['watch-keeper'], uri: `${fileSource}/Watch-keeper/${filePath}` },
+    'watchkeeper': { install: argv.wk || argv['watchkeeper'] || argv['watch-keeper'], uri: `${fileSource}/WatchKeeper/${filePath}` },
     'clustersubscription': { install: argv.cs || argv['clustersubscription'], uri: `${fileSource}/ClusterSubscription/${filePath}` },
     'remoteresource': { install: argv.rr || argv['remoteresource'], uri: `${fileSource}/RemoteResource/${filePath}` },
     'remoteresources3': { install: argv.rrs3 || argv['remoteresources3'], uri: `${fileSource}/RemoteResourceS3/${filePath}` },
     'remoteresources3decrypt': { install: argv.rrs3d || argv['remoteresources3decrypt'], uri: `${fileSource}/RemoteResourceS3Decrypt/${filePath}` },
     'mustachetemplate': { install: argv.mtp || argv['mustachetemplate'], uri: `${fileSource}/MustacheTemplate/${filePath}` },
     'featureflagsetld': { install: argv.ffsld || argv['featureflagsetld'], uri: `${fileSource}/FeatureFlagSetLD/${filePath}` },
+    'encryptedresource': { install: argv.er || argv['encryptedresource'], uri: `${fileSource}/EncryptedResource/${filePath}` },
     'managedset': { install: argv.ms || argv['managedset'], uri: `${fileSource}/ManagedSet/${filePath}` }
   };
 
@@ -169,7 +172,7 @@ async function main() {
       return objectPath.get(currentValue, 'install') === undefined ? shouldInstallAll : false;
     }, true);
 
-    if (installAll || resourcesObj['clustersubscription'].install || resourcesObj['watch-keeper'].install) {
+    if (installAll || resourcesObj['clustersubscription'].install || resourcesObj['watchkeeper'].install) {
       if (!rdApi && !rdUrl) log.warn('Failed to find arg \'--razeedash-api\' or \'--razeedash-url\'.. will create template \'razee-identity\' config.');
       if (!rdOrgKey) log.warn('Failed to find arg\'--razeedash-org-key\'.. will create template \'razee-identity\' secret.');
       let ridConfigJson = await readYaml('./src/resources/ridConfig.yaml', {
@@ -184,7 +187,7 @@ async function main() {
     for (var i = 0; i < resourceUris.length; i++) {
       if (installAll || resourceUris[i].install) {
         log.info(`=========== Installing ${resources[i]}:${resourceUris[i].install || 'Install All Resources'} ===========`);
-        if (resources[i] === 'watch-keeper') {
+        if (resources[i] === 'watchkeeper') {
           let wkConfigJson = await readYaml('./src/resources/wkConfig.yaml', {
             desired_namespace: argvNamespace,
             razeedash_url: rdUrl.href ? { url: rdUrl.href } : false,
