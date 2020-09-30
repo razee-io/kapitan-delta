@@ -27,7 +27,7 @@
   ],
   "license": "Apache-2.0",
   "dependencies": {
-    "@razee/kubernetes-util": "^0.1.5",
+    "@razee/kubernetes-util": "^0.1.6",
     "axios": "^0.20.0",
     "bunyan": "^1.8.14",
     "deepmerge": "^4.2.2",
