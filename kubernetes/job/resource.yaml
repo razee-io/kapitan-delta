@@ -68,7 +68,6 @@ spec:
         runAsGroup: <%NODE_GROUP_ID%>
         fsGroup: <%NODE_GROUP_ID%>
       containers:
-      containers:
       - name: razeedeploy-job
         image: "quay.io/razee/razeedeploy-delta:<%TRAVIS_TAG%>"
         command: ["node", "src/{{ COMMAND }}", "--namespace={{{ NAMESPACE }}}"]
