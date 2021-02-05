@@ -123,7 +123,7 @@ async function main() {
           await deleteFile(wkConfigJson);
         }
         let { file } = await download(resourceUris[i]);
-        file = yaml.safeLoadAll(file);
+        file = yaml.loadAll(file);
         let flatFile = flatten(file);
         let crdIndex = flatFile.findIndex((el) => objectPath.get(el, 'kind') === 'CustomResourceDefinition');
         if (crdIndex >= 0) {
@@ -170,7 +170,7 @@ async function main() {
 async function readYaml(path, templateOptions = {}) {
   let yamlFile = await fs.readFile(path, 'utf8');
   let yamlTemplate = handlebars.compile(yamlFile);
-  let templatedJson = yaml.safeLoadAll(yamlTemplate(templateOptions));
+  let templatedJson = yaml.loadAll(yamlTemplate(templateOptions));
   return templatedJson;
 }
 
@@ -201,7 +201,7 @@ async function crdDeleted(name, attempts = 5, backoffInterval = 3750) {
     success = false;
     throw Error(`Failed to delete ${name}`);
   } else {
-    log.warn(`CRD ${name} not fully removed.. re-checking in: ${backoffInterval/1000} sec, attempts remaining: ${attempts}`);
+    log.warn(`CRD ${name} not fully removed.. re-checking in: ${backoffInterval / 1000} sec, attempts remaining: ${attempts}`);
     await pause(backoffInterval);
     return crdDeleted(name, attempts, backoffInterval * 2);
   }
