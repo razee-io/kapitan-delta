@@ -68,7 +68,7 @@ async function main() {
 async function update(uri) {
   log.info(`Updating ${uri}`);
   let file = await download(uri);
-  file = yaml.safeLoadAll(file);
+  file = yaml.loadAll(file);
   return decomposeFile(file);
 }
 

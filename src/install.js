@@ -201,7 +201,7 @@ async function main() {
           }
         }
         let { file } = await download(resourceUris[i]);
-        file = yaml.safeLoadAll(file);
+        file = yaml.loadAll(file);
         await decomposeFile(file);
         if (autoUpdate) {
           autoUpdateArray.push({ options: { url: resourceUris[i].uri.replace('{{install_version}}', (argv['fp'] || argv['file-path']) ? 'latest' : 'latest/download') } });
@@ -233,7 +233,7 @@ async function main() {
 async function readYaml(path, templateOptions = {}) {
   let yamlFile = await fs.readFile(path, 'utf8');
   let yamlTemplate = handlebars.compile(yamlFile);
-  let templatedJson = yaml.safeLoadAll(yamlTemplate(templateOptions));
+  let templatedJson = yaml.loadAll(yamlTemplate(templateOptions));
   return templatedJson;
 }
 
