@@ -390,9 +390,32 @@ async function ensureExists(krm, file, options = {}) {
   return response;
 }
 
-main().then(() => {
-  success === true ? process.exit(0) : process.exit(1);
-}).catch(e => {
-  log.error(e);
-  process.exit(1);
-});
+function createEventListeners() {
+  process.on('SIGTERM', () => {
+    log.info('recieved SIGTERM. not handling at this time.');
+  });
+  process.on('unhandledRejection', (reason) => {
+    log.error('recieved unhandledRejection', reason);
+  });
+  process.on('beforeExit', (code) => {
+    log.info(`No work found. exiting with code: ${code}`);
+  });
+
+}
+
+async function run() {
+  try {
+    createEventListeners();
+
+    await main();
+    success === true ? process.exit(0) : process.exit(1);
+  } catch (error) {
+    log.error(error);
+    process.exit(1);
+  }
+
+}
+
+module.exports = {
+  run
+};

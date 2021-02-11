@@ -1,8 +1,9 @@
 {
-  "name": "delta",
-  "version": "0.0.1",
+  "name": "@razee/razeedeploy-delta",
+  "version": "0.0.0-dev",
   "description": "A service to keep specified Kubernetes custom resources enforced and updated",
   "main": "src/index.js",
+  "bin": "./bin/razeedeploy-delta",
   "scripts": {
     "start": "node src/index.js",
     "test": "nyc --reporter=html --reporter=text mocha ",
@@ -25,6 +26,9 @@
       "name": "Alex Lewitt"
     }
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "Apache-2.0",
   "dependencies": {
     "@razee/kubernetes-util": "^0.2.0",
