@@ -23,7 +23,7 @@ before_deploy:
   - docker login -u="${QUAY_ID}" -p="${QUAY_TOKEN}" quay.io
 
 deploy:
-  # Publish npm package with tag "next" on release candidates
+  # Publish npm package with tag "next" on release and release candidates
   - provider: npm
     email: "${NPMJS_EMAIL}"
     api_key: "${NPMJS_API_KEY}"
@@ -31,7 +31,7 @@ deploy:
     skip_cleanup: true
     on:
       tags: true
-      condition: ${TRAVIS_TAG} =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)$
+      condition: ${TRAVIS_TAG} =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$
   # Publish docker image on release and release candidates
   - provider: script
     script: docker push "quay.io/razee/razeedeploy-delta:${TRAVIS_TAG}"
