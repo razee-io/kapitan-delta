@@ -23,12 +23,31 @@ before_deploy:
   - docker login -u="${QUAY_ID}" -p="${QUAY_TOKEN}" quay.io
 
 deploy:
+  # Publish npm package with tag "next" on release candidates
+  - provider: npm
+    email: "${NPMJS_EMAIL}"
+    api_key: "${NPMJS_API_KEY}"
+    tag: next
+    skip_cleanup: true
+    on:
+      tags: true
+      condition: ${TRAVIS_TAG} =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)$
+  # Publish docker image on release and release candidates
   - provider: script
     script: docker push "quay.io/razee/razeedeploy-delta:${TRAVIS_TAG}"
     skip_cleanup: true
     on:
       tags: true
       condition: ${TRAVIS_TAG} =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$
+  # Publish npm package with tag "latest" on release
+  - provider: npm
+    email: "${NPMJS_EMAIL}"
+    api_key: "${NPMJS_API_KEY}"
+    skip_cleanup: true
+    on:
+      tags: true
+      condition: ${TRAVIS_TAG} =~ ^[0-9]+\.[0-9]+\.[0-9]+$
+  # Publish GitHub release assets on release
   - provider: releases
     file:
       - "/tmp/resource.yaml"
@@ -39,18 +58,3 @@ deploy:
     on:
       tags: true
       condition: ${TRAVIS_TAG} =~ ^[0-9]+\.[0-9]+\.[0-9]+$
-  - provider: npm
-    email: "${NPMJS_EMAIL}"
-    api_key: "${NPMJS_API_KEY}"
-    skip_cleanup: true
-    on:
-      tags: true
-      condition: ${TRAVIS_TAG} =~ ^[0-9]+\.[0-9]+\.[0-9]+$
-  - provider: npm
-    email: "${NPMJS_EMAIL}"
-    api_key: "${NPMJS_API_KEY}"
-    tag: next
-    skip_cleanup: true
-    on:
-      tags: true
-      condition: ${TRAVIS_TAG} =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$
