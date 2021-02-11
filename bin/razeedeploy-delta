@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const args = process.argv.slice(2);
+if (args[0] === undefined) args[0] = 'index';
 
 if (args[0].toLowerCase() === 'install') {
   require('../src/install').run();
