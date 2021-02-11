@@ -2,7 +2,7 @@
   "name": "@razee/razeedeploy-delta",
   "version": "0.0.0-dev",
   "description": "A service to keep specified Kubernetes custom resources enforced and updated",
-  "main": "src/index.js",
+  "main": "./src/index.js",
   "bin": "./bin/razeedeploy-delta",
   "scripts": {
     "start": "node src/index.js",
