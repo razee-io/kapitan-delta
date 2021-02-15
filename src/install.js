@@ -303,7 +303,6 @@ async function decomposeFile(file, mode = 'replace') {
           }
         }
       }
-      console.log(objectPath.get(file, 'spec.template.spec.containers', []));
 
       if (!objectPath.has(file, 'metadata.namespace') && krm.namespaced) {
         log.info(`No namespace found for ${kind} ${objectPath.get(file, 'metadata.name')}.. setting namespace: ${argvNamespace}`);
