@@ -26,6 +26,8 @@
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
 --fp, --file-path=''
     : the path directly after each component, e.g. \${fileSource}/WatchKeeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
+-r, --registry=''
+    : image registry that razeedeploy-job should install razeedeploy images with (Default 'quay.io/razee')
 --wk, --watchkeeper='', --watch-keeper=''
     : install watchkeeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''

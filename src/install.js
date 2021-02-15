@@ -46,6 +46,8 @@ async function main() {
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
 --fp, --file-path=''
     : the path directly after each component, e.g. \${fileSource}/WatchKeeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
+-r, --registry=''
+    : image registry that razeedeploy-job should install razeedeploy images with (Default 'quay.io/razee')
 --wk, --watchkeeper='', --watch-keeper=''
     : install watchkeeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
@@ -289,6 +291,20 @@ async function decomposeFile(file, mode = 'replace') {
   } else if (file) {
     let krm = await kc.getKubeResourceMeta(apiVersion, kind, 'update');
     if (krm) {
+      let registrySub = typeof (argv['r'] || argv['registry']) === 'string' ? argv['r'] || argv['registry'] : undefined;
+      if (registrySub !== undefined) {
+        let deployContainers = objectPath.get(file, 'spec.template.spec.containers', []);
+        for (let i = 0; i < deployContainers.length; i++) {
+          const container = deployContainers[i];
+          const image = objectPath.get(container, 'image');
+          if (image) {
+            if (!registrySub.endsWith('/')) registrySub = `${registrySub}/`;
+            objectPath.set(container, 'image', image.replace('quay.io/razee/', registrySub));
+          }
+        }
+      }
+      console.log(objectPath.get(file, 'spec.template.spec.containers', []));
+
       if (!objectPath.has(file, 'metadata.namespace') && krm.namespaced) {
         log.info(`No namespace found for ${kind} ${objectPath.get(file, 'metadata.name')}.. setting namespace: ${argvNamespace}`);
         objectPath.set(file, 'metadata.namespace', argvNamespace);
