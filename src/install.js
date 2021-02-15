@@ -297,7 +297,7 @@ async function decomposeFile(file, mode = 'replace') {
         for (let i = 0; i < deployContainers.length; i++) {
           const container = deployContainers[i];
           const image = objectPath.get(container, 'image');
-          if (image) {
+          if (image !== undefined) {
             if (!registrySub.endsWith('/')) registrySub = `${registrySub}/`;
             objectPath.set(container, 'image', image.replace('quay.io/razee/', registrySub));
           }
