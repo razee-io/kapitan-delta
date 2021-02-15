@@ -110,7 +110,7 @@ async function main() {
     fileSource = fileSource.replace(/\/+$/g, '');
   }
 
-  let filePath = argv['fp'] || argv['file-path'] || 'releases/{{install_version}}/resource.yaml';
+  let filePath = typeof (argv['fp'] || argv['file-path']) === 'string' ? argv['fp'] || argv['file-path'] : 'releases/{{install_version}}/resource.yaml';
 
   let rdUrl = argv['rd-url'] || argv['razeedash-url'] || false;
   if (rdUrl && !validUrl.isUri(rdUrl)) {
