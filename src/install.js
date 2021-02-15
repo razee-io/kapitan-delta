@@ -130,7 +130,7 @@ async function main() {
   const base64String = argv['rd-cluster-metadata64'] || argv['razeedash-cluster-metadata64'];
   try {
     if (base64String) {
-      const buff = new Buffer(base64String, 'base64');
+      const buff = new Buffer.from(base64String, 'base64');
       const valuesString = buff.toString('utf8');
       const values = JSON.parse(valuesString);
       for (var [name, value] of Object.entries(values)) {
