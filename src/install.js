@@ -293,15 +293,14 @@ async function decomposeFile(file, mode = 'replace') {
     if (krm) {
       let registrySub = typeof (argv['r'] || argv['registry']) === 'string' ? argv['r'] || argv['registry'] : undefined;
       if (registrySub !== undefined) {
-        let deployContainers = objectPath.get(file, 'spec.template.spec.containers', []);
-        for (let i = 0; i < deployContainers.length; i++) {
-          const container = deployContainers[i];
+        const deployContainers = objectPath.get(file, 'spec.template.spec.containers', []);
+        deployContainers.forEach(container => {
           const image = objectPath.get(container, 'image');
           if (image !== undefined) {
             if (!registrySub.endsWith('/')) registrySub = `${registrySub}/`;
             objectPath.set(container, 'image', image.replace('quay.io/razee/', registrySub));
           }
-        }
+        });
       }
 
       if (!objectPath.has(file, 'metadata.namespace') && krm.namespaced) {
