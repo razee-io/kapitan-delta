@@ -46,6 +46,8 @@ async function main() {
     : url that razeedeploy-job should source razeedeploy resource files from (Default 'https://github.com/razee-io')
 --fp, --file-path=''
     : the path directly after each component, e.g. \${fileSource}/WatchKeeper/\${filePath}. (Default 'releases/{{install_version}}/resource.yaml')
+-r, --registry=''
+    : image registry that razeedeploy-job should install razeedeploy images with (Default 'quay.io/razee/')
 --wk, --watchkeeper='', --watch-keeper=''
     : install watchkeeper at a specific version (Default 'latest')
 --cs, --clustersubscription=''
@@ -110,7 +112,7 @@ async function main() {
     fileSource = fileSource.replace(/\/+$/g, '');
   }
 
-  let filePath = argv['fp'] || argv['file-path'] || 'releases/{{install_version}}/resource.yaml';
+  let filePath = typeof (argv['fp'] || argv['file-path']) === 'string' ? argv['fp'] || argv['file-path'] : 'releases/{{install_version}}/resource.yaml';
 
   let rdUrl = argv['rd-url'] || argv['razeedash-url'] || false;
   if (rdUrl && !validUrl.isUri(rdUrl)) {
@@ -130,7 +132,7 @@ async function main() {
   const base64String = argv['rd-cluster-metadata64'] || argv['razeedash-cluster-metadata64'];
   try {
     if (base64String) {
-      const buff = new Buffer(base64String, 'base64');
+      const buff = new Buffer.from(base64String, 'base64');
       const valuesString = buff.toString('utf8');
       const values = JSON.parse(valuesString);
       for (var [name, value] of Object.entries(values)) {
@@ -289,6 +291,18 @@ async function decomposeFile(file, mode = 'replace') {
   } else if (file) {
     let krm = await kc.getKubeResourceMeta(apiVersion, kind, 'update');
     if (krm) {
+      let registrySub = typeof (argv['r'] || argv['registry']) === 'string' ? argv['r'] || argv['registry'] : undefined;
+      if (registrySub !== undefined) {
+        const deployContainers = objectPath.get(file, 'spec.template.spec.containers', []);
+        deployContainers.forEach(container => {
+          const image = objectPath.get(container, 'image');
+          if (image !== undefined) {
+            if (!registrySub.endsWith('/')) registrySub = `${registrySub}/`;
+            objectPath.set(container, 'image', image.replace('quay.io/razee/', registrySub));
+          }
+        });
+      }
+
       if (!objectPath.has(file, 'metadata.namespace') && krm.namespaced) {
         log.info(`No namespace found for ${kind} ${objectPath.get(file, 'metadata.name')}.. setting namespace: ${argvNamespace}`);
         objectPath.set(file, 'metadata.namespace', argvNamespace);
