@@ -57,7 +57,7 @@ subjects:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: razeedeploy-job
+  name: "razeedeploy-job{{{ UUID }}}"
   namespace: "{{{ NAMESPACE }}}"
 spec:
   template:
@@ -68,7 +68,7 @@ spec:
         runAsGroup: <%NODE_GROUP_ID%>
         fsGroup: <%NODE_GROUP_ID%>
       containers:
-      - name: razeedeploy-job
+      - name: "razeedeploy-job{{{ UUID }}}"
         image: "quay.io/razee/razeedeploy-delta:<%TRAVIS_TAG%>"
         command: ["./bin/razeedeploy-delta", "{{ COMMAND }}", "--namespace={{{ NAMESPACE }}}"]
         args: {{ ARGS_ARRAY }}
