@@ -56,6 +56,8 @@
     : install encryptedresource at a specific version (Default 'latest')
 --ms, --managedset=''
     : install managedset at a specific version (Default 'latest')
+-f, --force
+    : overwrite prerequisite configuration already installed on the cluster (Default false)
 -a, --autoupdate
     : will create a remoteresource that will pull and keep specified resources updated to latest (even if a version was specified). if no resources specified, will do all known resources.
 ```

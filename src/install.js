@@ -76,6 +76,8 @@ async function main() {
     : install encryptedresource at a specific version (Default 'latest')
 --ms, --managedset=''
     : install managedset at a specific version (Default 'latest')
+-f, --force
+    : overwrite prerequisite configuration already installed on the cluster (Default false)
 -a, --autoupdate
     : will create a remoteresource that will pull and keep specified resources updated to latest (even if a version was specified). if no resources specified, will do all known resources.
     `);
@@ -146,6 +148,7 @@ async function main() {
   } catch (exception) {
     log.warn(`can not decode or parse json object from razeedash-cluster-metadata ${base64String}`);
   }
+  let applyMode = (argv.f || argv['force']) !== undefined && ((argv.f || argv['force']) === true || (argv.f || argv['force']).toLowerCase() === 'true') ? 'replace' : 'ensureExists';
 
 
   let autoUpdate = argv.a || argv.autoupdate || false;
@@ -166,7 +169,7 @@ async function main() {
   try {
     log.info('=========== Installing Prerequisites ===========');
     let preReqsJson = await readYaml(`${__dirname}/resources/preReqs.yaml`, { desired_namespace: argvNamespace });
-    await decomposeFile(preReqsJson, 'ensureExists');
+    await decomposeFile(preReqsJson, applyMode);
 
     let resourceUris = Object.values(resourcesObj);
     let resources = Object.keys(resourcesObj);
@@ -183,7 +186,7 @@ async function main() {
         razeedash_cluster_id: rdclusterId ? { id: rdclusterId } : false, // have set to false, {} puts any "" string value
         razeedash_org_key: Buffer.from(rdOrgKey || 'api-key-youorgkeyhere').toString('base64')
       });
-      await decomposeFile(ridConfigJson, 'ensureExists');
+      await decomposeFile(ridConfigJson, applyMode);
     }
 
     for (var i = 0; i < resourceUris.length; i++) {
@@ -195,7 +198,7 @@ async function main() {
             razeedash_url: rdUrl.href ? { url: rdUrl.href } : false,
             razeedash_cluster_metadata: rdclusterMetadata,
           });
-          await decomposeFile(wkConfigJson, 'ensureExists');
+          await decomposeFile(wkConfigJson, applyMode);
         } else if (resources[i] === 'clustersubscription') {
           if (!(installAll || resourcesObj.remoteresource.install)) {
             log.warn('RemoteResource CRD must be one of the installed resources in order to use ClusterSubscription. (ie. --rr --cs).. Skipping ClusterSubscription');
