@@ -123,6 +123,10 @@ spec:
             memory: 50Mi
             cpu: 40m
         env:
+        - name: USER_AGENT_NAME
+          value:  razee-io/razeedeploy-delta
+        - name: USER_AGENT_VERSION
+          value:  "{{{TRAVIS_TAG}}}"
         - name: NAMESPACE
           valueFrom:
             fieldRef:
