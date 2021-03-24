@@ -72,7 +72,7 @@ spec:
         image: "quay.io/razee/razeedeploy-delta:<%TRAVIS_TAG%>"
        env:
          - name: USER_AGENT_NAME
-           value: razee.io/clustersubscription
+           value: razee.io/razeedeploy-delta
          - name: USER_AGENT_VERSION
            value: "{{{TRAVIS_TAG}}}"
        command: ["./bin/razeedeploy-delta", "{{ COMMAND }}", "--namespace={{{ NAMESPACE }}}"]
