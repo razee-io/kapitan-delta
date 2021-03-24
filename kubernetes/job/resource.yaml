@@ -68,16 +68,16 @@ spec:
         runAsGroup: <%NODE_GROUP_ID%>
         fsGroup: <%NODE_GROUP_ID%>
       containers:
-      - name: "razeedeploy-job{{{ UUID }}}"
+       - name: "razeedeploy-job{{{ UUID }}}"
         image: "quay.io/razee/razeedeploy-delta:<%TRAVIS_TAG%>"
-        env:
-          - name: USER_AGENT_NAME
-            value:  razee-io/razeedeploy-delta
-          - name: USER_AGENT_VERSION
-            value:  "{{{TRAVIS_TAG}}}"
-        command: ["./bin/razeedeploy-delta", "{{ COMMAND }}", "--namespace={{{ NAMESPACE }}}"]
+       env:
+         - name: USER_AGENT_NAME
+           value: razee.io/clustersubscription
+         - name: USER_AGENT_VERSION
+           value: "{{{TRAVIS_TAG}}}"
+       command: ["./bin/razeedeploy-delta", "{{ COMMAND }}", "--namespace={{{ NAMESPACE }}}"]
         args: {{ ARGS_ARRAY }}
         # see README.md for args options. https://github.com/razee-io/razeedeploy-delta/blob/master/README.md
-      restartPolicy: Never
+        restartPolicy: Never
   backoffLimit: 2
 <%={{ }}=%>
