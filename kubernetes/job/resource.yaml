@@ -70,6 +70,11 @@ spec:
       containers:
       - name: "razeedeploy-job{{{ UUID }}}"
         image: "quay.io/razee/razeedeploy-delta:<%TRAVIS_TAG%>"
+        env:
+        - name: USER_AGENT_NAME
+          value: razee-io/razeedeploy-delta
+        - name: USER_AGENT_VERSION
+          value: "<%TRAVIS_TAG%>"
         command: ["./bin/razeedeploy-delta", "{{ COMMAND }}", "--namespace={{{ NAMESPACE }}}"]
         args: {{ ARGS_ARRAY }}
         # see README.md for args options. https://github.com/razee-io/razeedeploy-delta/blob/master/README.md
