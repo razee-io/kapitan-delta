@@ -72,6 +72,9 @@ metadata:
   namespace: "{{ desired_namespace }}"
   labels:
     app: watch-keeper
+data:
+  exclude: 'true'
+  v1_event: 'true'
 ---
 apiVersion: v1
 kind: ConfigMap
