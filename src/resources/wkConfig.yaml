@@ -72,6 +72,17 @@ metadata:
   namespace: "{{ desired_namespace }}"
   labels:
     app: watch-keeper
+    razee/watch-resource: detail
+data:
+  include: 'true'
+  v1_pod: 'true'
+  v1_service: 'true'
+  apps_v1_daemonset: 'true'
+  apps_v1_deployment: 'true'
+  apps_v1_replicaset: 'true'
+  apps_v1_statefulset: 'true'
+  batch_v1_job: 'true'
+  batch_v1beta1_cronjob: 'true'
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -80,6 +91,7 @@ metadata:
   namespace: "{{ desired_namespace }}"
   labels:
     app: watch-keeper
+    razee/watch-resource: detail
 data:
   v1_node: lite
 ---
@@ -89,8 +101,9 @@ metadata:
   name: watch-keeper-cluster-metadata
   namespace: "{{ desired_namespace }}"
   labels:
+    app: watch-keeper
+    razee/watch-resource: detail
     razee/cluster-metadata: 'true'
-    razee/watch-resource: lite
 data:
 {{#razeedash_cluster_metadata}}
   {{name}}: "{{value}}"
