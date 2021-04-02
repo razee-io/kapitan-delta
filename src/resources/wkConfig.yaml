@@ -72,7 +72,7 @@ metadata:
   namespace: "{{ desired_namespace }}"
   labels:
     app: watch-keeper
-    razee/watch-resource: lite
+    razee/watch-resource: detail
 data:
   include: 'true'
   v1_pod: 'true'
@@ -91,7 +91,7 @@ metadata:
   namespace: "{{ desired_namespace }}"
   labels:
     app: watch-keeper
-    razee/watch-resource: lite
+    razee/watch-resource: detail
 data:
   v1_node: lite
 ---
@@ -102,7 +102,7 @@ metadata:
   namespace: "{{ desired_namespace }}"
   labels:
     app: watch-keeper
-    razee/watch-resource: lite
+    razee/watch-resource: detail
     razee/cluster-metadata: 'true'
 data:
 {{#razeedash_cluster_metadata}}
